@@ -48,7 +48,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
-          body:
+          body: ${{ github.event.commits[0].message }}
           draft: false
           prerelease: false
       - name: Upload Release Asset
