@@ -9,6 +9,7 @@
     "@neutralinojs/neu": "^11.6.0"
   },
   "scripts": {
-    "init": "yarn install && node ./node_modules/@neutralinojs/neu/bin/neu.js update"
+    "init": "yarn install && node ./node_modules/@neutralinojs/neu/bin/neu.js update",
+    "build": "node ./node_modules/@neutralinojs/neu/bin/neu.js build --release"
   }
 }

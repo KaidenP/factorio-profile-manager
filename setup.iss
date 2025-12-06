@@ -1,5 +1,3 @@
-#expr Exec('cmd.exe', '/C neu build')
-
 [Setup]
 AppName=Factorio Profile Manager
 AppVersion=2.0.0

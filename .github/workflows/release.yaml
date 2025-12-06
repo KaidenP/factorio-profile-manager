@@ -1,0 +1,67 @@
+on: [push]
+
+jobs:
+  release:
+    name: Build and upload release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v6
+        with:
+          node-version: latest
+          cache: yarn
+
+      - name: Initialize Workspace
+        id: init-node
+        run:
+          yarn run init
+
+      - name: Build
+        id: build
+        run:
+          yarn run build
+
+      - name: Create Setup
+        id: build-setup
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: setup.iss
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.run_id }}-${{ github.run_attempt }}
+          release_name: Release ${{ github.ref_name }}
+          body: ${{ github.event.commits[0].message }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Setup
+        id: upload-setup
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: dist/Factorio Profile Manager Setup.exe
+          asset_name: "Factorio Profile Manager Setup.exe"
+          asset_content_type: application/octet-stream
+
+      - name: Upload Portable
+        id: upload-portable
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: dist/factorio-profile-manager-release.zip
+          asset_name: "Factorio Profile Manager Portable.zip"
+          asset_content_type: application/octet-stream
