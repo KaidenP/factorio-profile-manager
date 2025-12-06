@@ -78,8 +78,9 @@ let duplicateMode = false
 
 function setupFooterActions() {
     const modal = document.getElementById('addProfileModal');
+    const infoModal = document.getElementById('infoModal');
     const addBtn = document.getElementById('addProfileBtn');
-    const closeSpan = document.querySelector('.close-modal');
+    const closeSpans = document.querySelectorAll('.close-modal');
     const saveBtn = document.getElementById('saveNewProfileBtn');
     const launchBtn = document.getElementById('launchProfileBtn');
     const warningEl = document.getElementById('profileWarning');
@@ -88,7 +89,7 @@ function setupFooterActions() {
 
     newProfileModal = (name = nameInput.value, id = id_el.value) => {
         warningEl.style.display = 'none';
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
         nameInput.focus();
 
 
@@ -99,21 +100,20 @@ function setupFooterActions() {
     // Open Modal
     addBtn.addEventListener('click', () => newProfileModal());
 
-    // Close Modal
-    closeSpan.addEventListener('click', () => {
-        modal.style.display = 'none';
-        if (duplicateMode) {
-            duplicateMode = false;
-
-            // Clear form
-            nameInput.value = '';
-            id_el.value = '';
-        }
+    // Close Modal (Generic for all close spans)
+    closeSpans.forEach(span => {
+        span.addEventListener('click', () => {
+            modal.style.display = 'none';
+            infoModal.style.display = 'none';
+        });
     });
 
     window.addEventListener('click', (event) => {
         if (event.target === modal) {
             modal.style.display = 'none';
+        }
+        if (event.target === infoModal) {
+            infoModal.style.display = 'none';
         }
     });
 
@@ -191,20 +191,27 @@ function renderTable(dataToRender = app.profileData) {
         if (profile.id === app.selectedProfile) row.classList.add('selected');
 
         row.innerHTML = `
-                <td>${profile.name}</td>
+                    <td>
+                    ${profile.name}
+                        <div class="row-actions">
+                        <button class="action-btn info-btn" title="Profile Mods">&#x1F441;</button>
+                            <button class="action-btn duplicate-btn" title="Duplicate Profile">🞧</button>
+                            <button class="action-btn delete-btn" title="Delete Profile">🞮</button>
+                        </div>
+                    </td>
                 <td title="${profile.lastRun === 0 ? "Never Ran" : lastRunFull}">${profile.lastRun === 0 ? "NEVER" : lastRunDate}</td>
-                <td>
-                    ${profile.totalRuns}
-                    <div class="row-actions">
-                        <button class="action-btn duplicate-btn" title="Duplicate Profile">🞧</button>
-                        <button class="action-btn delete-btn" title="Delete Profile">🞮</button>
-                    </div>
-                </td>
-            `;
+                <td>${profile.totalRuns}</td>
+                `;
 
         // Setup action buttons
+        const infoBtn = row.querySelector('.info-btn');
         const duplicateBtn = row.querySelector('.duplicate-btn');
         const deleteBtn = row.querySelector('.delete-btn');
+
+        infoBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showInfoModal(profile);
+        });
 
         duplicateBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -226,6 +233,39 @@ function renderTable(dataToRender = app.profileData) {
 
         tbody.appendChild(row);
     });
+}
+
+function showInfoModal(profile) {
+    const modal = document.getElementById('infoModal');
+    document.getElementById('infoProfileName').textContent = profile.name;
+    document.getElementById('infoProfileId').textContent = profile.id;
+
+    const modList = document.getElementById('infoModList');
+    modList.innerHTML = '';
+
+    // Mock Mod Data (Replace with real data from profile later)
+    const mods = [
+        { name: "base", enabled: true },
+        { name: "factorio-standard-library", enabled: true },
+        { name: "space-exploration", enabled: true },
+        { name: "krastorio2", enabled: false },
+        { name: "fneic", enabled: true },
+        { name: "helmod", enabled: true },
+        { name: "ltn", enabled: false },
+        { name: "jetpack", enabled: true }
+    ];
+
+    mods.forEach(mod => {
+        const div = document.createElement('div');
+        div.className = 'mod-item';
+        div.innerHTML = `
+                <input type="checkbox" ${mod.enabled ? 'checked' : ''}>
+                <label>${mod.name}</label>
+            `;
+        modList.appendChild(div);
+    });
+
+    modal.style.display = 'flex';
 }
 
 function reevaluateSearch(term = "") {

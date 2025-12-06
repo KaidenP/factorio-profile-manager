@@ -7,71 +7,98 @@
 </head>
 <body>
 <div id="windowGrip">
+    <span id="appTitle">Factorio Profile Manager</span>
     <div id="closeBtn" title="Close Application">🞮</div>
 </div>
 <div id="app">
-    <div id="searchContainer">
-        <input type="text" id="searchInput" placeholder="Search profiles...">
+    <div class="table-scroll-container">
+        <div id="searchContainer">
+            <input type="text" id="searchInput" placeholder="Search profiles...">
+        </div>
+        <table id="profilesTable">
+            <thead>
+            <tr>
+                <th data-column="name" data-order="desc">
+                    Profile Name
+                    <span class="sort-icon">&#9650;</span>
+                    <span id="searchIcon" title="Toggle Search">&#128269;</span>
+                </th>
+                <th data-column="lastRun" data-order="desc">Last Run <span class="sort-icon">&#9650;</span></th>
+                <th data-column="totalRuns" data-order="desc">Total Runs <span class="sort-icon">&#9650;</span></th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Rows will be populated by JS -->
+            </tbody>
+        </table>
     </div>
-    <table id="profilesTable">
-        <thead>
-        <tr>
-            <th data-column="name" data-order="desc">
-                Profile Name
-                <span class="sort-icon">&#9650;</span>
-                <span id="searchIcon" title="Toggle Search">&#128269;</span>
-            </th>
-            <th data-column="lastRun" data-order="desc">Last Run <span class="sort-icon">&#9650;</span></th>
-            <th data-column="totalRuns" data-order="desc">Total Runs <span class="sort-icon">&#9650;</span></th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- Rows will be populated by JS -->
-        </tbody>
-    </table>
 </div>
 
-    <div id="footer">
-        <button id="addProfileBtn" class="footer-btn">Add Profile</button>
-        <button id="launchProfileBtn" class="footer-btn primary">Launch Profile</button>
-    </div>
+<div id="footer">
+    <button id="addProfileBtn" class="footer-btn">Add Profile</button>
+    <button id="launchProfileBtn" class="footer-btn primary">Launch Profile</button>
+</div>
 
-    <!-- Add Profile Modal -->
-    <div id="addProfileModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2>Create New Profile</h2>
+<!-- Add Profile Modal -->
+<div id="addProfileModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Create New Profile</h2>
+        <div class="form-group">
+            <label for="newProfileName">Profile Name:</label>
+            <input type="text" id="newProfileName" placeholder="Enter name">
+        </div>
+        <div class="form-group">
+            <label for="newProfileId">Profile Directory Name:</label>
+            <input type="text" id="newProfileId" placeholder="Directory Name">
+        </div>
+        <div class="modal-actions">
+            <div id="profileWarning" class="warning-container">
+                <span class="warning-icon">&#9888;</span>
+                <span class="warning-text">Profile Directory Modified. Confirm Creation?</span>
+            </div>
+            <button id="saveNewProfileBtn" class="footer-btn primary">Create</button>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div id="loadingModal" class="modal" style="z-index: 4000;">
+    <div class="modal-content" style="text-align: center; max-width: 400px;">
+        <h2 id="loadingText">Loading...</h2>
+        <div class="progress-container">
+            <div id="progressBar" class="progress-bar indeterminate"></div>
+        </div>
+        <p id="loadingStatus" style="color: #aaa; font-size: 0.9em; margin-top: 10px;">Initializing...</p>
+    </div>
+</div>
+
+<!-- Info Profile Modal -->
+<div id="infoModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2>Profile Information</h2>
+        <div id="info-container" class="info-container">
             <div class="form-group">
-                <label for="newProfileName">Profile Name:</label>
-                <input type="text" id="newProfileName" placeholder="Enter name">
+                <label>Profile Name:</label>
+                <div id="infoProfileName" class="info-value"></div>
             </div>
             <div class="form-group">
-                <label for="newProfileId">Profile Directory Name:</label>
-                <input type="text" id="newProfileId" placeholder="Directory Name">
+                <label>Profile ID (Directory):</label>
+                <div id="infoProfileId" class="info-value"></div>
             </div>
-            <div class="modal-actions">
-                <div id="profileWarning" class="warning-container">
-                    <span class="warning-icon">&#9888;</span>
-                    <span class="warning-text">Profile Directory Modified. Confirm Creation?</span>
-                </div>
-                <button id="saveNewProfileBtn" class="footer-btn primary">Create</button>
+        </div>
+        <div class="form-group">
+            <label>Installed Mods:</label>
+            <div id="infoModList" class="mod-list-container">
+                <!-- Mod items will be populated here -->
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Loading Modal -->
-    <div id="loadingModal" class="modal" style="z-index: 4000;">
-        <div class="modal-content" style="text-align: center; max-width: 400px;">
-            <h2 id="loadingText">Loading...</h2>
-            <div class="progress-container">
-                <div id="progressBar" class="progress-bar indeterminate"></div>
-            </div>
-            <p id="loadingStatus" style="color: #aaa; font-size: 0.9em; margin-top: 10px;">Initializing...</p>
-        </div>
-    </div>
-
-    <script src="/js/neutralino.js"></script>
-    <script src="/js/backend.js"></script>
+<script src="/js/neutralino.js"></script>
+<script src="/js/backend.js"></script>
 <script src="/js/ui.js"></script>
 </body>
 </html>
