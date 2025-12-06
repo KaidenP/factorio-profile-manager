@@ -1,0 +1,14 @@
+{
+  "name": "factorio-profile-manager",
+  "version": "2.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:KaidenP/factorio-profile-manager.git",
+  "author": "Kaiden <11036039+KaidenP@users.noreply.github.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@neutralinojs/neu": "^11.6.0"
+  },
+  "scripts": {
+    "init": "yarn install && node ./node_modules/@neutralinojs/neu/bin/neu.js update"
+  }
+}
