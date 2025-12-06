@@ -1,15 +1,18 @@
-# neutralinojs-minimal
+# <img src=resources/icons/logo.png width=32></picture> Factorio Profile Manager (FPM)
 
-The default template for a Neutralinojs app. It's possible to use your favorite frontend framework by using [these steps](https://neutralino.js.org/docs/getting-started/using-frontend-libraries).
+A Launcher for Factorio.
+
+## Features
+- [x] Clean UI
+- [ ] Automatic Downloads of the latest Factorio Version
+- [ ] Mod List
+- [ ] One Copy of the game for all profiles
+
 
 ## Contributors
 
-[![Contributors](https://contrib.rocks/image?repo=neutralinojs/neutralinojs-minimal)](https://github.com/neutralinojs/neutralinojs-minimal/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=KaidenP/factorio-profile-manager)](https://github.com/KaidenP/factorio-profile-manager/graphs/contributors)
 
 ## License
 
 [MIT](LICENSE)
-
-## Icon credits
-
-- `trayIcon.png` - Made by [Freepik](https://www.freepik.com) and downloaded from [Flaticon](https://www.flaticon.com)
