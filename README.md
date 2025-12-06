@@ -2,6 +2,13 @@
 
 A Launcher for Factorio.
 
+## Download
+
+See the [Releases Page](https://github.com/KaidenP/factorio-profile-manager/releases)
+
+## Screenshots
+[Screenshots](.github/screenshots)
+
 ## Features
 - [x] Clean UI
 - [ ] Automatic Downloads of the latest Factorio Version
