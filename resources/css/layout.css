@@ -1,0 +1,81 @@
+/* Fixed Title Bar */
+#windowGrip {
+    width: 100%;
+    background-color: var(--grip-color);
+    align-items: center;
+    justify-content: space-between;
+    z-index: 2000;
+    user-select: none;
+    display: flex;
+}
+
+#appTitle {
+    margin-left: 10px;
+    font-size: 0.9em;
+    color: var(--accent-color);
+    font-weight: bold;
+    display: flex;
+}
+
+#closeBtn {
+    width: 40px;
+    height: 100%;
+    line-height: 30px;
+    text-align: center;
+    background-color: var(--grip-color);
+    color: #e0e0e0;
+    cursor: pointer;
+    font-weight: bold;
+    float: right;
+}
+
+#closeBtn:hover {
+    background-color: #c0392b;
+    color: #ffffff;
+}
+
+/* Main Content Area */
+#app {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    padding-bottom: 60px;
+}
+
+/* Table Wrapper for Scrolling */
+.table-scroll-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    border: 2px solid var(--border-color);
+    margin: 20px;
+}
+
+#searchContainer {
+    width: 100%;
+    margin-bottom: 0;
+    display: none;
+    padding: 10px;
+    box-sizing: border-box;
+    background-color: var(--bg-primary);
+}
+
+#footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 60px;
+    width: 100%;
+    padding: 10px 20px;
+    background-color: var(--bg-secondary);
+    border-top: 2px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    box-sizing: border-box;
+    z-index: 2000;
+}
