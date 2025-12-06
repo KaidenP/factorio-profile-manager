@@ -16,16 +16,17 @@
   "nativeAllowList": [
     "app.*",
     "os.*",
-    "debug.log"
+    "debug.log",
+    "window.beginDrag"
   ],
   "globalVariables": {},
   "modes": {
     "window": {
       "title": "Factorio Profile Manager",
-      "width": 800,
-      "height": 500,
-      "minWidth": 400,
-      "minHeight": 200,
+      "width": 960,
+      "height": 540,
+      "minWidth": 960,
+      "minHeight": 540,
       "center": true,
       "fullScreen": false,
       "alwaysOnTop": false,
@@ -35,7 +36,7 @@
       "maximize": false,
       "hidden": false,
       "resizable": false,
-      "exitProcessOnClose": false
+      "exitProcessOnClose": true
     },
     "browser": {
       "globalVariables": {

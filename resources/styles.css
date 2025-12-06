@@ -1,20 +1,361 @@
+:root {
+    --bg-primary: #2a2a2a;
+    --bg-secondary: #3a3a3a;
+    --bg-tertiary: #3e3e3e;
+    --bg-header: #3a3a3a;
+    --bg-hover: #4a4a4a;
+    --bg-selected: #5a5a5a;
+    
+    --text-primary: #e0e0e0;
+    
+    --accent-color: #ff9f1c;
+    --border-color: #5a5a5a;
+    --border-light: #4a4a4a;
+    
+    --danger-bg: #c0392b;
+    --danger-border: #e74c3c;
+    
+    --shadow-color: rgba(0, 0, 0, 0.5);
+
+    --grip-color: #1c1c1c;
+}
+
 body {
-    background-color: white;
+    font-family: sans-serif;
+    /* Add space for the custom title bar */
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    margin: 0; /* Reset default margin */
+    padding: 50px 20px 85px;
 }
 
-#neutralinoapp {
-    text-align: center;
-    -webkit-user-select: none;
+#windowGrip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 30px;
+    background-color: var(--grip-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 2000;
     user-select: none;
-    cursor: default;
 }
 
-#neutralinoapp h1{
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 20px;
+#closeBtn {
+    /* Remove fixed positioning since it is now inside the flex container */
+    width: 40px;
+    height: 100%;
+    line-height: 30px; /* Match parent height */
+    text-align: center;
+    background-color: var(--grip-color);
+    color: #e0e0e0;
+    cursor: pointer;
+    font-weight: bold;
 }
 
-#neutralinoapp > div {
+#closeBtn:hover {
+    background-color: #c0392b; /* Red for close action */
+    color: #ffffff;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    box-shadow: 0 0 10px var(--shadow-color);
+    border: 2px solid var(--border-color);
+}
+
+#searchContainer {
+    width: 100%;
+    margin-bottom: 10px;
+    display: none;
+}
+
+#searchInput {
+    padding: 10px;
     font-size: 16px;
-    font-weight: normal;
+    box-sizing: border-box;
+    border: 1px solid #5a5a5a;
+    background-color: #3a3a3a;
+    color: #e0e0e0;
+    border-radius: 0; /* Sharper edges for industrial look */
+    width: 100%;
 }
+
+#searchInput:focus {
+    outline: none;
+    border-color: #ff9f1c; /* Factorio orange-ish */
+}
+
+/* Make the first column (Profile Name) take up all available space */
+th:first-child {
+    width: 100%;
+}
+
+th, td {
+    white-space: nowrap;
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-light);
+}
+
+th {
+    background-color: #3a3a3a;
+    color: #ff9f1c; /* Factorio orange */
+    cursor: pointer;
+    user-select: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-bottom: 2px solid #ff9f1c;
+}
+
+th:hover {
+    background-color: #007f65;
+}
+
+tr:hover {
+    background-color: var(--bg-tertiary);
+}
+
+tr.selected {
+    background-color: var(--bg-selected);
+    color: #ffffff;
+    border-left: 4px solid #ff9f1c; /* Visual indicator on left */
+}
+
+tr {
+    cursor: pointer; /* Indicates selectable */
+    transition: background-color 0.1s;
+    position: relative; /* Needed for absolute positioning of actions if desired, though flex is used below */
+}
+
+/* Row Action Buttons */
+.row-actions {
+    display: inline-block;
+    float: right;
+    opacity: 0;
+    transition: opacity 0.1s ease-in-out;
+}
+
+tr:hover .row-actions {
+    opacity: 1;
+}
+
+.action-btn {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 2px 6px;
+    font-size: 0.8em;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+.action-btn:hover {
+    /*background-color: var(--bg-selected);*/
+    color: var(--text-primary);
+}
+
+.duplicate-btn:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.delete-btn:hover {
+    background-color: var(--danger-bg);
+    border-color: var(--danger-border);
+}
+
+th span.sort-icon {
+    font-size: 0.8em;
+    visibility: hidden;
+}
+
+th.sorted-asc span.sort-icon {
+    visibility: visible;
+}
+
+th.sorted-desc span.sort-icon {
+    visibility: visible;
+    display: inline-block;
+    transform: rotate(180deg);
+}
+
+#searchIcon {
+    float: right;
+    cursor: pointer;
+    opacity: 0.7;
+    font-size: 1.1em;
+}
+
+#searchIcon:hover {
+    opacity: 1;
+}
+
+    #footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 15px;
+        background-color: var(--bg-secondary);
+        border-top: 2px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        box-sizing: border-box;
+    }
+
+    .footer-btn {
+        padding: 10px 20px;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        font-weight: bold;
+        text-transform: uppercase;
+        transition: all 0.1s;
+    }
+
+    .footer-btn:hover {
+        background-color: var(--bg-hover);
+        border-color: var(--accent-color);
+    }
+
+    .footer-btn.primary {
+        background-color: var(--accent-color);
+        color: #1c1c1c; /* Dark text on orange */
+        border-color: var(--accent-color);
+    }
+
+    .footer-btn.primary:hover {
+        background-color: #e08e1a;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 3000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.7);
+    }
+
+    .modal-content {
+        background-color: var(--bg-secondary);
+        margin: 15% auto; /* 15% from the top and centered */
+        padding: 20px;
+        border: 2px solid var(--border-color);
+        width: 80%;
+        max-width: 500px;
+        position: relative;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    }
+
+    .close-modal {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close-modal:hover,
+    .close-modal:focus {
+        color: var(--accent-color);
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 8px;
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+    }
+
+    .modal-actions {
+        text-align: right;
+        margin-top: 20px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 15px; /* Increased gap */
+    }
+
+    .warning-container {
+        align-items: center;
+        color: #ffcc00; /* Warning Yellow */
+        gap: 5px;
+    }
+
+    .warning-icon {
+        font-size: 1.2em;
+    }
+
+    .warning-text {
+        font-size: 0.9em;
+        font-weight: bold;
+        font-style: italic;
+    }
+
+    /* Progress Bar Styles */
+    .progress-container {
+        width: 100%;
+        height: 20px;
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        margin-top: 15px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background-color: var(--accent-color);
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+
+    /* Indeterminate State */
+    .progress-bar.indeterminate {
+        width: 100%;
+        background-image: linear-gradient(
+            45deg,
+            var(--accent-color) 25%,
+            #e08e1a 25%,
+            #e08e1a 50%,
+            var(--accent-color) 50%,
+            var(--accent-color) 75%,
+            #e08e1a 75%,
+            #e08e1a 100%
+        );
+        background-size: 40px 40px;
+        animation: progress-stripes 1s linear infinite;
+    }
+
+    @keyframes progress-stripes {
+        0% { background-position: 0 0; }
+        100% { background-position: 40px 0; }
+    }
