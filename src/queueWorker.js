@@ -52,7 +52,7 @@ export default class QueueWorker {
     stop() {
         if (this._stopping) return;
         this._stopping = true;
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             let r2 = this._promiseControls?.reject
             const endFn = () => {
                 this._stopping = false;
@@ -63,5 +63,12 @@ export default class QueueWorker {
                 resolve: () => endFn, reject: endFn
             }
         })
+    }
+
+    shuffle() {
+        for (let i = this._tasks.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            [this._tasks[i], this._tasks[j]] = [this._tasks[j], this._tasks[i]];
+        }
     }
 }

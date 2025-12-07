@@ -147,5 +147,6 @@
 #loadingStatus pre {
     background: black;
     padding: 10px;
-    overflow-x: auto;
+    overflow-x: scroll;
+    text-align: left;
 }

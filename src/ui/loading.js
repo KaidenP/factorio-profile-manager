@@ -13,7 +13,7 @@ class loadingUI {
 
     show(title = "Loading...", mode = "indeterminate") {
         this.modal.style.display = 'flex';
-        this.text.textContent = title;
+        this.text.innerHTML = title;
         this.setMode(mode);
     }
 
