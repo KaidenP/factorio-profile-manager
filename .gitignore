@@ -2,11 +2,16 @@
 .lite_workspace.lua
 node_modules
 
+# Run workspace
+/workspace
+
 # Neutralinojs binaries and builds
 /old
 /bin/neu*
 /dist
 /.tmp
+*.bundle.js
+*.bundle.js.map
 
 # Neutralinojs client (minified)
 neutralino.js

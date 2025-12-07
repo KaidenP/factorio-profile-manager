@@ -6,11 +6,18 @@
   "author": "Kaiden <11036039+KaidenP@users.noreply.github.com>",
   "license": "MIT",
   "devDependencies": {
-    "@neutralinojs/neu": "^11.6.0"
+    "@neutralinojs/neu": "^11.6.0",
+    "webpack": "^5.103.0",
+    "webpack-cli": "^6.0.1"
   },
   "scripts": {
-    "init": "yarn install && node ./node_modules/@neutralinojs/neu/bin/neu.js update",
-    "build": "node ./node_modules/@neutralinojs/neu/bin/neu.js build --release",
-    "run": "node ./node_modules/@neutralinojs/neu/bin/neu.js run"
+    "init": "yarn install && node ./node_modules/@neutralinojs/neu/bin/neu.js update && mkdir workspace",
+    "build": "webpack && node ./node_modules/@neutralinojs/neu/bin/neu.js build --release",
+    "run": "webpack && cd workspace && ..\\bin\\neutralino-win_x64.exe --load-dir-res --path=.. --export-auth-info --neu-dev-extension --neu-dev-auto-reload",
+    "watch": "webpack --watch"
+  },
+  "dependencies": {
+    "@neutralinojs/lib": "^6.4.0",
+    "unzipit": "^1.4.3"
   }
 }

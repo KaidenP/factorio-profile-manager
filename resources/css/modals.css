@@ -143,3 +143,9 @@
     0% { background-position: 0 0; }
     100% { background-position: 40px 0; }
 }
+
+#loadingStatus pre {
+    background: black;
+    padding: 10px;
+    overflow-x: auto;
+}

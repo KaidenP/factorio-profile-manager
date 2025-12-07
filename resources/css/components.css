@@ -175,3 +175,7 @@ tr:hover .row-actions {
     outline: none;
     border-color: var(--accent-color);
 }
+
+a {
+    color: var(--accent-color);
+}

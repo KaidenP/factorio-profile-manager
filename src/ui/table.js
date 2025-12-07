@@ -1,4 +1,6 @@
-function renderTable(dataToRender = app.profileData) {
+let app;
+
+export function renderTable(dataToRender = app.profileData) {
     const tbody = document.querySelector('#profilesTable tbody');
     tbody.innerHTML = '';
 
@@ -30,13 +32,13 @@ function renderTable(dataToRender = app.profileData) {
 
         infoBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            showInfoModal(profile);
+            app.ui.modals.showInfoModal(profile);
         });
 
         duplicateBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            duplicateMode = profile.id;
-            newProfileModal(profile.name + ' (Copy)', profile.id + '-copy');
+            app.duplicateMode = profile.id;
+            app.ui.modals.openNewProfileModal(profile.name + ' (Copy)', profile.id + '-copy');
         });
 
         deleteBtn.addEventListener('click', (e) => {
@@ -55,7 +57,7 @@ function renderTable(dataToRender = app.profileData) {
     });
 }
 
-function reevaluateSearch(term = "") {
+export function reevaluateSearch(term = "") {
     term = term.toLowerCase();
     const filteredData = app.profileData.filter(profile =>
         profile.name.toLowerCase().includes(term)
@@ -63,26 +65,7 @@ function reevaluateSearch(term = "") {
     renderTable(filteredData)
 }
 
-function setupSearch() {
-    const searchInput = document.getElementById('searchInput');
-    const searchContainer = document.getElementById('searchContainer');
-    const searchIcon = document.getElementById('searchIcon');
-
-    searchIcon.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent sorting when clicking the search icon
-        if (searchContainer.style.display === 'none' || searchContainer.style.display === '') {
-            searchContainer.style.display = 'block';
-            searchInput.focus();
-        } else {
-            searchContainer.style.display = 'none';
-        }
-    });
-
-    searchInput.addEventListener('input',
-        (e) => reevaluateSearch(e.target.value));
-}
-
-function sortProfiles(th, overrideOrder = null) {
+export function sortProfiles(th, overrideOrder = null) {
     const column = th.dataset.column;
     const currentOrder = th.dataset.order;
     const newOrder = overrideOrder || currentOrder === 'asc' ? 'desc' : 'asc';
@@ -101,11 +84,31 @@ function sortProfiles(th, overrideOrder = null) {
     reevaluateSearch(document.getElementById('searchInput').value);
 }
 
-function setupSorting() {
+export function setup(APP) {
+    app = APP;
+    // Setup sorting
     document.querySelectorAll('#profilesTable th').forEach(th => {
         // if (th.dataset.column === 'lastRun') sortProfiles(th, 'desc');
         th.addEventListener('click', () => {
             sortProfiles(th)
         });
     });
+
+    // Setup search
+    const searchInput = document.getElementById('searchInput');
+    const searchContainer = document.getElementById('searchContainer');
+    const searchIcon = document.getElementById('searchIcon');
+
+    searchIcon.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent sorting when clicking the search icon
+        if (searchContainer.style.display === 'none' || searchContainer.style.display === '') {
+            searchContainer.style.display = 'block';
+            searchInput.focus();
+        } else {
+            searchContainer.style.display = 'none';
+        }
+    });
+
+    searchInput.addEventListener('input',
+        (e) => reevaluateSearch(e.target.value));
 }
