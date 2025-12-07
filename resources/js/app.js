@@ -245,3 +245,20 @@ class Application {
         else Neutralino.app.exit();
     }
 }
+
+const app = new Application();
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+function init() {
+    loadingUI.init()
+    app.load(profile_data => {
+        setupSorting();
+        setupSearch();
+        renderTable(profile_data);
+        setupWindowBar();
+        setupFooterActions();
+    })
+}
+
+init();
