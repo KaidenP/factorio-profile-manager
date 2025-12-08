@@ -8,19 +8,21 @@ const el = {
     warningEl: document.getElementById('profileWarning'),
     nameInput: document.getElementById('newProfileName'),
     id: document.getElementById('newProfileId'),
+    fromProfile: document.getElementById('fromProfile'),
 
     infoProfileName: document.getElementById('infoProfileName'),
     infoProfileId: document.getElementById('infoProfileId'),
     infoModList: document.getElementById('infoModList'),
 }
 
-export function openNewProfileModal(name = '', id = '') {
+export function openNewProfileModal(name = '', id = '', fromProfile = '') {
     el.warningEl.style.display = 'none';
     el.addProfileModal.style.display = 'flex';
     el.nameInput.focus();
 
     el.nameInput.value = name;
     el.id.value = id;
+    el.fromProfile.value = fromProfile;
 }
 
 export function showInfoModal(profile) {
@@ -60,7 +62,6 @@ export function init(app) {// openNewProfileModal
     function closeModal() {
         el.infoModal.style.display = 'none';
         el.addProfileModal.style.display = 'none';
-        app.duplicateMode = null;
     }
     el.closeSpans.forEach(span => {
         span.addEventListener('click', () => closeModal());
@@ -98,7 +99,12 @@ export function init(app) {// openNewProfileModal
             return;
         }
 
-        app.addProfile(name, id);
+        let fromProfile = el.fromProfile.value;
+        if (fromProfile === '') {
+            fromProfile = null
+        }
+
+        app.addProfile(name, id, fromProfile);
 
         el.addProfileModal.style.display = 'none';
 

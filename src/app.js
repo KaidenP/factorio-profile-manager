@@ -1,6 +1,7 @@
 import UI from './ui';
 import * as Neutralino from "@neutralinojs/lib"
 import Factorio from "./factorio";
+import loadingUI from "./ui/loading";
 
 (new (class Application {
     _profile_data = null;
@@ -127,8 +128,7 @@ import Factorio from "./factorio";
     }
 
 
-    duplicate = null;
-    async addProfile(name, id) {
+    async addProfile(name, id, from = null) {
         if (!this._profile_data) throw new Error('Profile data is not loaded yet');
 
         // Check for duplicate ID
@@ -136,13 +136,23 @@ import Factorio from "./factorio";
             throw new Error('Profile with this ID or Name already exists');
         }
 
-        if (!this.duplicate) {
+        if (!from) {
             await Neutralino.filesystem.createDirectory(await Neutralino.filesystem.getJoinedPath('profile', id))
         } else {
+            // show loading UI if copy is taking a long time
+            let done = false
+            let timeoutID = setTimeout(() => {
+                if (!done) loadingUI.show(`Copying profile ${from} to ${id}...`)
+            }, 500)
+
             await Neutralino.filesystem.copy(
-                await Neutralino.filesystem.getJoinedPath('profile', this.duplicate),
+                await Neutralino.filesystem.getJoinedPath('profile', from),
                 await Neutralino.filesystem.getJoinedPath('profile', id)
             )
+
+            clearTimeout(timeoutID)
+            done = true
+            loadingUI.hide()
         }
         this._profile_data.push({
             id,

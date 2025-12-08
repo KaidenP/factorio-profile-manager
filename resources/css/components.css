@@ -179,3 +179,7 @@ tr:hover .row-actions {
 a {
     color: var(--accent-color);
 }
+
+.hidden {
+    display: none;
+}

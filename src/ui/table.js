@@ -37,8 +37,7 @@ export function renderTable(dataToRender = app.profileData) {
 
         duplicateBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            app.duplicateMode = profile.id;
-            app.ui.modals.openNewProfileModal(profile.name + ' (Copy)', profile.id + '-copy');
+            app.ui.modals.openNewProfileModal(profile.name + ' (Copy)', profile.id + '-copy', profile.id);
         });
 
         deleteBtn.addEventListener('click', (e) => {
