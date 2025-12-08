@@ -12,6 +12,19 @@ jobs:
         id: checkout
         uses: actions/checkout@v6
 
+      - name: Delete existing nightly release
+        shell: pwsh
+        run: |
+          gh release delete nightly --yes || exit 0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete existing nightly tag
+        shell: pwsh
+        run: |
+          git tag -d nightly || exit 0
+          git push origin :refs/tags/nightly 2>$null
+
       - name: Setup Node.js
         id: setup-node
         uses: actions/setup-node@v6
@@ -34,36 +47,6 @@ jobs:
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
           path: setup.iss
-
-      - name: Delete existing nightly release
-        shell: pwsh
-        run: |
-          # Disable terminating errors from GH
-          $ErrorActionPreference = "Continue"
-
-          $json = gh release view nightly --json id 2>$null
-          if ($LASTEXITCODE -eq 0 -and $json) {
-            $release = $json | ConvertFrom-Json
-            if ($release.id) {
-              gh release delete nightly --yes
-            }
-          } else {
-            Write-Host "No nightly release found"
-          }
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Delete existing nightly tag
-        shell: pwsh
-        run: |
-          # Disable terminating errors
-          $ErrorActionPreference = "Continue"
-          
-          $tagExists = git rev-parse nightly 2>$null
-          if ($LASTEXITCODE -eq 0) {
-            git tag -d nightly
-          }
-          git push origin :refs/tags/nightly 2>$null
 
       - name: Create Release
         id: create_release
