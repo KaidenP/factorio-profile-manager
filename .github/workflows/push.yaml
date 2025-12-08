@@ -36,21 +36,27 @@ jobs:
           path: setup.iss
 
       - name: Delete existing nightly release
+        shell: pwsh
         run: |
-          release_id=$(gh release view nightly --json id -q ".id" || echo "")
-          if [ -n "$release_id" ]; then
-            gh release delete nightly --yes
-          fi
+          try {
+            $release = gh release view nightly --json id | ConvertFrom-Json
+            if ($release.id) {
+              gh release delete nightly --yes
+            }
+          } catch {
+            Write-Host "No existing nightly release"
+          }
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete existing nightly tag
+        shell: pwsh
         run: |
-          if git rev-parse nightly >/dev/null 2>&1; then
+          $tagExists = git rev-parse nightly 2>$null
+          if ($LASTEXITCODE -eq 0) {
             git tag -d nightly
-          fi
-          # Delete remote tag if it exists
-          git push origin :refs/tags/nightly || true
+          }
+          git push origin :refs/tags/nightly 2>$null
 
       - name: Create Release
         id: create_release
