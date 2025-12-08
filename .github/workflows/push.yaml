@@ -35,13 +35,30 @@ jobs:
         with:
           path: setup.iss
 
+      - name: Delete existing nightly release
+        run: |
+          release_id=$(gh release view nightly --json id -q ".id" || echo "")
+          if [ -n "$release_id" ]; then
+            gh release delete nightly --yes
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete existing nightly tag
+        run: |
+          if git rev-parse nightly >/dev/null 2>&1; then
+            git tag -d nightly
+          fi
+          # Delete remote tag if it exists
+          git push origin :refs/tags/nightly || true
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: build/${{ github.ref_name }}/${{ github.sha }}
+          tag_name: nightly
           release_name: Commit ${{ github.ref_name }} - ${{ github.sha }}
           body: ${{ github.event.commits[0].message }}
           draft: false
