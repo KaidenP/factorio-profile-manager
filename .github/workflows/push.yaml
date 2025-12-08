@@ -38,13 +38,17 @@ jobs:
       - name: Delete existing nightly release
         shell: pwsh
         run: |
-          try {
-            $release = gh release view nightly --json id | ConvertFrom-Json
+          # Disable terminating errors from GH
+          $ErrorActionPreference = "Continue"
+
+          $json = gh release view nightly --json id 2>$null
+          if ($LASTEXITCODE -eq 0 -and $json) {
+            $release = $json | ConvertFrom-Json
             if ($release.id) {
               gh release delete nightly --yes
             }
-          } catch {
-            Write-Host "No existing nightly release"
+          } else {
+            Write-Host "No nightly release found"
           }
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -52,6 +56,9 @@ jobs:
       - name: Delete existing nightly tag
         shell: pwsh
         run: |
+          # Disable terminating errors
+          $ErrorActionPreference = "Continue"
+          
           $tagExists = git rev-parse nightly 2>$null
           if ($LASTEXITCODE -eq 0) {
             git tag -d nightly
