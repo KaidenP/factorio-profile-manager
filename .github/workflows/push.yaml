@@ -57,7 +57,8 @@ jobs:
           tag_name: nightly
           release_name: Most Recent Commit
           body: |
-            # Commit on ${{ github.ref_name }}
+            # [Commit](https://github.com/KaidenP/factorio-profile-manager/commit/${{ github.sha }}) on [`${{ github.ref_name }}`](https://github.com/KaidenP/factorio-profile-manager/tree/${{ github.ref_name }})
+            
             ${{ github.event.commits[0].message }}
           draft: false
           prerelease: true
