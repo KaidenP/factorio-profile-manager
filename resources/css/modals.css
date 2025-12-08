@@ -150,3 +150,7 @@
     overflow-x: scroll;
     text-align: left;
 }
+
+#infoProfileId {
+    cursor: pointer;
+}

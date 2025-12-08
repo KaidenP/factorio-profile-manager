@@ -124,4 +124,9 @@ export function init(app) {// openNewProfileModal
         }
     });
 
+    // Open Profile Folder
+    el.infoProfileId.addEventListener('click', async () => {
+        await Neutralino.os.open(await Neutralino.filesystem.getJoinedPath(NL_CWD, 'profile', el.infoProfileId.textContent));
+    })
+
 }
