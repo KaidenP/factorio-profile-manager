@@ -22,7 +22,7 @@ export default class Factorio {
                         filters: [{name: 'Factorio ZIP', extensions: ['zip']}]
                     }))[0];
 
-                    if (!selectedFile) return this.checkInstalled();
+                    if (!selectedFile) return this.install();
 
                     await unzip(selectedFile);
                 }}]
