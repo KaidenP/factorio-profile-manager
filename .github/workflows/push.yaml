@@ -15,15 +15,17 @@ jobs:
       - name: Delete existing nightly release
         shell: pwsh
         run: |
-          gh release delete nightly --yes || exit 0
+          Try { gh release delete nightly --yes; } Catch { }
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete existing nightly tag
         shell: pwsh
         run: |
-          git tag -d nightly || exit 0
-          git push origin :refs/tags/nightly 2>$null
+          Try { 
+            git tag -d nightly || exit 0
+            git push origin :refs/tags/nightly 2>$null
+          } Catch { }
 
       - name: Setup Node.js
         id: setup-node
