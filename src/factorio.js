@@ -16,7 +16,7 @@ export default class Factorio {
                 and select it in the next step.</p>
             `,
             [{text: 'Install Factorio', primary: true, onClick: async () => {
-                    await Neutralino.filesystem.remove('factorio');
+                    try { await Neutralino.filesystem.remove('factorio'); } catch (e) {}
                     let selectedFile = (await Neutralino.os.showOpenDialog("Open Factorio.zip", {
                         defaultPath: await Neutralino.os.getPath('downloads'),
                         filters: [{name: 'Factorio ZIP', extensions: ['zip']}]
