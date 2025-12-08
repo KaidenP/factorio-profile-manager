@@ -197,20 +197,14 @@ import loadingUI from "./ui/loading";
      * @returns {Promise<void>}
      */
     async launch(username) {
+        let profile;
+        for (let i = 0; i < this.profileData.length; i++) {
+            if (this._profile_data[i].id === this.selectedProfile) profile = this._profile_data[i];
+        }
+        if (!profile) throw new Error('Selected profile not found');
+        profile.lastRun = (new Date()).getTime();
+        profile.totalRuns++;
+        await this.save();
         await this.factorio.launch(this.selectedProfile);
     }
 })());
-
-
-// (async function() {
-//     document.addEventListener('contextmenu', event => event.preventDefault());
-//     app.load(profile_data => {
-//
-//
-//         setupSorting();
-//         setupSearch();
-//         renderTable(profile_data);
-//         setupWindowBar();
-//         setupFooterActions();
-//     })
-// })();
