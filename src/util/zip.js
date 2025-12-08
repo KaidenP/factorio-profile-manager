@@ -2,6 +2,7 @@ import { unzipRaw as unzipit} from 'unzipit';
 import {dialog} from "../ui/dialog";
 import loadingUI from "../ui/loading";
 import queueWorker from "../queueWorker";
+import {ensureDirectory} from "./util";
 
 /**
  * Unzips a file using Neutralino's filesystem API and unzipit.
@@ -117,15 +118,7 @@ export async function unzip(filePath) {
 
     for (let path of paths) {
         // Create the directory if needed
-        try {
-            await Neutralino.filesystem.createDirectory(path);
-        } catch (e) {
-            let pathStats = await Neutralino.filesystem.getStats(path);
-            if (!pathStats.isDirectory) {
-                await Neutralino.filesystem.remove(path);
-                await Neutralino.filesystem.createDirectory(path);
-            }
-        }
+        await ensureDirectory();
     }
 
     // qw.shuffle();

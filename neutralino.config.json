@@ -22,7 +22,8 @@
     "os.*",
     "computer.*",
     "filesystem.*",
-    "storage.*"
+    "storage.*",
+    "resources.*"
   ],
   "globalVariables": {},
   "modes": {

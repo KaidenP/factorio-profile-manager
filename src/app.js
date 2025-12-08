@@ -6,7 +6,16 @@ import Factorio from "./factorio";
     _profile_data = null;
     get profileData() { if (!this._profile_data) throw new Error('Profile data is not loaded yet'); return this._profile_data; }
     _selected_profile = null;
-    _dirty = false;
+    __dirty = false;
+    get _dirty() {
+        return this.__dirty;
+    }
+    set _dirty(value) {
+        if (!value) this.__dirty = false;
+
+        this.__dirty = true;
+        this.save()
+    }
     factorio = null;
     constructor() {
         window.App = this
@@ -170,6 +179,16 @@ import Factorio from "./factorio";
 
     render() {
         UI.table.renderTable(this.profileData);
+    }
+
+    /**
+     * Launches a profile.
+     * @param {String} profile
+     * @param {String} [username]
+     * @returns {Promise<void>}
+     */
+    async launch(username) {
+        await this.factorio.launch(this.selectedProfile);
     }
 })());
 

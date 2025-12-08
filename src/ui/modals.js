@@ -111,8 +111,8 @@ export function init(app) {// openNewProfileModal
 // Launch Profile
     el.launchProfileBtn.addEventListener('click', () => {
         if (app.selectedProfile) {
-            // TODO: Call backend to launch: app.launchProfile(app.selectedProfile);
             console.log("Launching:", app.selectedProfile);
+            app.launch();
         } else {
             alert("Please select a profile to launch.");
         }
