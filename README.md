@@ -1,4 +1,5 @@
 # <img src=resources/icons/logo.png width=32></picture> Factorio Profile Manager (FPM)
+[![.github/workflows/push.yaml](https://github.com/KaidenP/factorio-profile-manager/actions/workflows/push.yaml/badge.svg)](https://github.com/KaidenP/factorio-profile-manager/actions/workflows/push.yaml)
 
 A Launcher for Factorio.
 
