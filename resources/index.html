@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>NeutralinoJs sample app</title>
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div id="windowGrip">
@@ -13,7 +13,7 @@
 <div id="app">
     <div class="table-scroll-container">
         <div id="searchContainer">
-            <input type="text" id="searchInput" placeholder="Search profiles...">
+            <label for="searchInput" class="hidden">Search</label><input type="text" id="searchInput" placeholder="Search profiles...">
         </div>
         <table id="profilesTable">
             <thead>
@@ -101,7 +101,7 @@
     </div>
 </div>
 
-<script src="/__neutralino_globals.js"></script>
-<script src="/js/build/app.bundle.js"></script>
+<script src="__neutralino_globals.js"></script>
+<script src="js/build/app.bundle.js"></script>
 </body>
 </html>
