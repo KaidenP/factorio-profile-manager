@@ -183,7 +183,6 @@ import Factorio from "./factorio";
 
     /**
      * Launches a profile.
-     * @param {String} profile
      * @param {String} [username]
      * @returns {Promise<void>}
      */

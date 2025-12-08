@@ -1,6 +1,5 @@
 import {unzip} from "./util/zip";
 import {ensureDirectory} from "./util/util";
-import {dialog} from "./ui/dialog";
 
 
 export default class Factorio {
@@ -25,7 +24,7 @@ export default class Factorio {
 
                     if (!selectedFile) return this.checkInstalled();
 
-                    let files = await unzip(selectedFile);
+                    await unzip(selectedFile);
                 }}]
         )
     }
@@ -40,7 +39,7 @@ export default class Factorio {
             }
 
             let path = await Neutralino.filesystem.getJoinedPath('factorio', 'bin', list[0].entry, 'factorio.exe');
-            let fileInfo = await Neutralino.filesystem.getStats(path);
+            await Neutralino.filesystem.getStats(path);
 
             this.path = path;
 
