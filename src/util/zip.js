@@ -118,7 +118,7 @@ export async function unzip(filePath) {
 
     for (let path of paths) {
         // Create the directory if needed
-        await ensureDirectory();
+        await ensureDirectory(path);
     }
 
     // qw.shuffle();
