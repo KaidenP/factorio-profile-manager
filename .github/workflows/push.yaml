@@ -29,7 +29,7 @@ jobs:
         id: setup-node
         uses: actions/setup-node@v6
         with:
-          node-version: latest
+          node-version: 22
           cache: yarn
 
       - name: Initialize Workspace
