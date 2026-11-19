@@ -16,27 +16,38 @@ export default class Factorio {
                 and select it in the next step.</p>
             `,
             [{text: 'Install Factorio', primary: true, onClick: async () => {
-                    try { await Neutralino.filesystem.remove('factorio'); } catch (e) {}
-                    let selectedFile = (await Neutralino.os.showOpenDialog("Open Factorio.zip", {
-                        defaultPath: await Neutralino.os.getPath('downloads'),
-                        filters: [{name: 'Factorio ZIP', extensions: ['zip']}]
-                    }))[0];
+                    try {
+                        try { await Neutralino.filesystem.remove('factorio'); } catch (e) {}
+                        let selectedFile = (await Neutralino.os.showOpenDialog("Open Factorio.zip", {
+                            defaultPath: await Neutralino.os.getPath('downloads'),
+                            filters: [{name: 'Factorio ZIP', extensions: ['zip']}]
+                        }))[0];
 
-                    if (!selectedFile) return this.install();
+                        if (!selectedFile) return this.install();
 
-                    await unzip(selectedFile);
+                        await unzip(selectedFile);
+
+                        // Re-detect the freshly extracted executable so profiles can be
+                        // launched immediately without restarting the app.
+                        await this.detect();
+                    } catch (e) {
+                        console.error('Factorio installation failed:', e)
+                        this._app.ui.dialog(`<p>Factorio installation failed:</p><pre>${e?.message || e}</pre>`, [{text: 'OK', primary: true}], true)
+                    }
                 }}]
         )
     }
 
-    async checkInstalled() {
+    /**
+     * Locate the Factorio executable and set `this.path`. Has no side effects
+     * other than setting `this.path`.
+     * @returns {Promise<boolean>} true when factorio.exe was found.
+     */
+    async detect() {
         try {
             let list = await Neutralino.filesystem.readDirectory(await Neutralino.filesystem.getJoinedPath('factorio', 'bin'));
 
-            if (list.length === 0) {
-                await this.install();
-                return;
-            }
+            if (list.length === 0) return false;
 
             let path = await Neutralino.filesystem.getJoinedPath('factorio', 'bin', list[0].entry, 'factorio.exe');
             await Neutralino.filesystem.getStats(path);
@@ -45,7 +56,12 @@ export default class Factorio {
 
             return true;
         } catch (e) {
-            // if (e?.code !== "NE_FS_NOPATHE") throw e;
+            return false;
+        }
+    }
+
+    async checkInstalled() {
+        if (!(await this.detect())) {
             await this.install();
         }
     }
@@ -57,6 +73,16 @@ export default class Factorio {
      * @param {string} login.token
      */
     async launch(profile, login) {
+        // Factorio might not have been detected yet (e.g. right after a fresh
+        // install in the same session). Try once more before launching.
+        if (!this.path) {
+            await this.checkInstalled();
+        }
+        if (!this.path) {
+            this._app.ui.dialog('<p>Factorio is not installed. Please install it before launching a profile.</p>', [{text: 'OK', primary: true}], true);
+            return;
+        }
+
         if (login) {
             let playerData;
             try {
