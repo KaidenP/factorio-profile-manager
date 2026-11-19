@@ -192,11 +192,11 @@ import loadingUI from "./ui/loading";
     }
 
     /**
-     * Launches a profile.
-     * @param {String} [username]
+     * Launches the selected profile.
+     * @param {{username?: string, token?: string}} [login]
      * @returns {Promise<void>}
      */
-    async launch(username) {
+    async launch(login = null) {
         let profile;
         for (let i = 0; i < this.profileData.length; i++) {
             if (this._profile_data[i].id === this.selectedProfile) profile = this._profile_data[i];
@@ -205,6 +205,6 @@ import loadingUI from "./ui/loading";
         profile.lastRun = (new Date()).getTime();
         profile.totalRuns++;
         await this.save();
-        await this.factorio.launch(this.selectedProfile);
+        await this.factorio.launch(this.selectedProfile, login);
     }
 })());

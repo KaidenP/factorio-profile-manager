@@ -1,3 +1,5 @@
+import {dialog} from "./dialog";
+
 const el = {
     addProfileModal: document.getElementById('addProfileModal'),
     infoModal: document.getElementById('infoModal'),
@@ -116,12 +118,35 @@ export function init(app) {// openNewProfileModal
 
 // Launch Profile
     el.launchProfileBtn.addEventListener('click', () => {
-        if (app.selectedProfile) {
-            console.log("Launching:", app.selectedProfile);
-            app.launch();
-        } else {
+        if (!app.selectedProfile) {
             alert("Please select a profile to launch.");
+            return;
         }
+
+        dialog(`
+            <h2>Launch Profile</h2>
+            <p>Enter your Factorio.com credentials to stay logged in, or skip to log in from the game.</p>
+            <div class="form-group">
+                <label for="loginUsername">Username</label>
+                <input type="text" id="loginUsername" placeholder="Factorio username" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="loginToken">Token</label>
+                <input type="password" id="loginToken" placeholder="Factorio token" autocomplete="off">
+            </div>
+        `, [
+            {text: 'Skip', onClick: () => app.launch()},
+            {text: 'Launch', primary: true, onClick: async () => {
+                const username = document.getElementById('loginUsername').value.trim();
+                const token = document.getElementById('loginToken').value.trim();
+
+                try {
+                    await app.launch(username || token ? {username, token} : null);
+                } catch (e) {
+                    dialog(`<p>Failed to launch profile:</p><pre>${e?.message || e}</pre>`, [{text: 'OK', primary: true}], true);
+                }
+            }}
+        ], true);
     });
 
     // Open Profile Folder
