@@ -1,16 +1,16 @@
-import { unzipRaw as unzipit} from 'unzipit';
-import {dialog} from "../ui/dialog";
+import { unzipRaw as unzipit } from 'unzipit';
+import type { Reader, ZipEntry } from 'unzipit';
+import { dialog } from "../ui/dialog";
 import loadingUI from "../ui/loading";
 import queueWorker from "../queueWorker";
-import {ensureDirectory} from "./util";
+import { ensureDirectory } from "./util";
 
 /**
  * Unzips a file using Neutralino's filesystem API and unzipit.
  *
- * @param {string} filePath - The absolute or relative path to the zip file.
- * @returns {Promise<void>}
+ * @param filePath - The absolute or relative path to the zip file.
  */
-export async function unzip(filePath) {
+export async function unzip(filePath: string): Promise<void> {
     try {
         loadingUI.show("Extracting Factorio...", "indeterminate");
 
@@ -24,12 +24,12 @@ export async function unzip(filePath) {
         loadingUI.hide();
         dialog('All files have been extracted successfully!', [{text: 'Okay', primary:true}], true);
     } catch (e) {
-        console.error('Error while unzipping:', e)
-        loadingUI.hide()
+        console.error('Error while unzipping:', e);
+        loadingUI.hide();
         try {
             await Neutralino.filesystem.remove('factorio');
         } catch (e2) {}
-        dialog(`Fatal Error While Unzipping: ${e?.message || e}`, [{text: 'Okay', primary: true}])
+        dialog(`Fatal Error While Unzipping: ${e?.message || e}`, [{text: 'Okay', primary: true}]);
     }
 }
 
@@ -38,8 +38,8 @@ export async function unzip(filePath) {
  * which reads ZIP natively and avoids Neutralino's slow base64/WebSocket binary
  * bridge. Falls back to `extractWithJS` when tar is unavailable or fails.
  */
-async function extractWithTar(filePath) {
-    const isShellSafe = (p) => /^[A-Za-z0-9_.\/\\:-]+$/.test(p);
+async function extractWithTar(filePath: string): Promise<void> {
+    const isShellSafe = (p: string) => /^[A-Za-z0-9_.\/\\:-]+$/.test(p);
 
     let target = filePath;
     let cleanupTarget = false;
@@ -73,20 +73,21 @@ async function extractWithTar(filePath) {
 /**
  * Slower fallback extractor using unzipit + Neutralino's filesystem API.
  */
-async function extractWithJS(filePath) {
-    class NeutralinoReader {
-        filePath;
-        constructor(filePath) {
+async function extractWithJS(filePath: string): Promise<void> {
+    class NeutralinoReader implements Reader {
+        filePath: string;
+        stats: any = null;
+
+        constructor(filePath: string) {
             this.filePath = filePath;
         }
 
-        stats = null;
-        async getLength() {
-            return this.stats?.size || (this.stats = await Neutralino.filesystem.getStats(filePath)).size;
+        async getLength(): Promise<number> {
+            return this.stats?.size || (this.stats = await Neutralino.filesystem.getStats(this.filePath)).size;
         }
 
-        async read(offset, length) {
-            const data = await Neutralino.filesystem.readBinaryFile(filePath, {
+        async read(offset: number, length: number): Promise<Uint8Array> {
+            const data = await Neutralino.filesystem.readBinaryFile(this.filePath, {
                 pos: offset,
                 size: length
             });
@@ -94,17 +95,17 @@ async function extractWithJS(filePath) {
         }
     }
 
-    let zipped = (await unzipit(new NeutralinoReader(filePath))).entries;
+    let zipped: ZipEntry[] = (await unzipit(new NeutralinoReader(filePath))).entries;
 
-    let qw = new queueWorker({concurrencyLimit: 25})
+    let qw = new queueWorker({concurrencyLimit: 25});
 
     const totalSizeMB = zipped.reduce((acc, file) => acc + file.size, 0)/1024/1024;
     let completedSize = 0;
 
     let startTime = (new Date()).getTime();
     let lastFile = 'Waiting for first file to be extracted...';
-    function updateProgress(bytes, lf = lastFile) {
-        completedSize+=bytes;
+    function updateProgress(bytes: number, lf: string = lastFile): void {
+        completedSize += bytes;
         lastFile = lf;
         let completedSizeMB = completedSize/1024/1024;
         let percent = completedSizeMB*100 / totalSizeMB;
@@ -113,34 +114,34 @@ async function extractWithJS(filePath) {
         let timeRemainingMs = (timeTaken / percent * (100 - percent));
         let date = new Date(0);
         date.setMilliseconds(timeRemainingMs); // specify value for SECONDS here
-        let timeString = date.toISOString().substring(11, 19)
+        let timeString = date.toISOString().substring(11, 19);
 
         loadingUI.setProgress(percent, `
             Extracted file ${completedSizeMB.toFixed(2)}MB of ${totalSizeMB.toFixed(2)}MB...
             ${(completedSize*1000/timeTaken/1024/1024).toFixed(2)}MB/s [${timeString}]
-            (${percent.toFixed(2)}%)<pre>${lastFile}</pre>`)
+            (${percent.toFixed(2)}%)<pre>${lastFile}</pre>`);
     }
 
-    let paths = [];
-    let fatalError = null;
+    let paths: string[] = [];
+    let fatalError: Error | null = null;
 
-    for (let i= 0; i < zipped.length; i++) {
+    for (let i = 0; i < zipped.length; i++) {
         let file = zipped[i];
-        let outPath = file.name.replace(/^\S+?\//, 'factorio/')
+        let outPath = file.name.replace(/^\S+?\//, 'factorio/');
 
-        paths.push((await Neutralino.filesystem.getPathParts(outPath)).parentPath)
+        paths.push((await Neutralino.filesystem.getPathParts(outPath)).parentPath);
 
         qw.addTask(async () => {
             if (fatalError) return;
 
             try {
-                let data = await file.arrayBuffer()
+                let data = await file.arrayBuffer();
                 const totalBytes = data.byteLength;
 
                 if (totalBytes <= 1024 * 1024 * 24) {
                     // If the file is small enough, write it directly to the file instead of using appendBinaryFile
-                    await Neutralino.filesystem.writeBinaryFile(outPath, data)
-                    updateProgress(file.size, outPath)
+                    await Neutralino.filesystem.writeBinaryFile(outPath, data);
+                    updateProgress(file.size, outPath);
                     return;
                 }
 
@@ -150,15 +151,15 @@ async function extractWithJS(filePath) {
                     const end = Math.min(offset + CHUNK_SIZE, totalBytes);
                     const chunk = data.slice(offset, end);
                     await Neutralino.filesystem.appendBinaryFile(outPath, chunk);
-                    updateProgress((offset + CHUNK_SIZE) > totalBytes ? totalBytes - offset : CHUNK_SIZE)
+                    updateProgress((offset + CHUNK_SIZE) > totalBytes ? totalBytes - offset : CHUNK_SIZE);
                 }
 
-                updateProgress(0, outPath)
+                updateProgress(0, outPath);
             } catch (e) {
-                console.error(`Error while unzipping "${outPath}":`, e)
+                console.error(`Error while unzipping "${outPath}":`, e);
                 if (!fatalError) fatalError = e;
             }
-        })
+        });
     }
 
     // Normalize separators, dedupe, then keep only the deepest directories
@@ -170,18 +171,17 @@ async function extractWithJS(filePath) {
             return !(arr[i + 1] && arr[i + 1].startsWith(path + '/'));
         });
 
-    loadingUI.setProgress(0, 'Preparing directories...')
+    loadingUI.setProgress(0, 'Preparing directories...');
     try {
         await Neutralino.filesystem.remove('factorio');
     } catch (e) {}
 
     for (let path of paths) {
-        // Create the directory if needed
         await ensureDirectory(path);
     }
 
     startTime = (new Date()).getTime();
-    loadingUI.setProgress(0, 'Extracting...')
+    loadingUI.setProgress(0, 'Extracting...');
     await qw.run();
 
     if (fatalError) throw fatalError;

@@ -1,8 +1,8 @@
-export async function ensureDirectory(path) {
+export async function ensureDirectory(path: string): Promise<void> {
     try {
         await Neutralino.filesystem.createDirectory(path);
     } catch (e) {
-        let pathStats;
+        let pathStats: any;
         try {
             pathStats = await Neutralino.filesystem.getStats(path);
         } catch (e2) {

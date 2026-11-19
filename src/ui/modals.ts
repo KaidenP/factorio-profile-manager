@@ -1,23 +1,24 @@
-import {dialog} from "./dialog";
+import { dialog } from "./dialog";
+import type { Profile } from "../types";
 
 const el = {
-    addProfileModal: document.getElementById('addProfileModal'),
-    infoModal: document.getElementById('infoModal'),
-    addProfileBtn: document.getElementById('addProfileBtn'),
+    addProfileModal: document.getElementById('addProfileModal')!,
+    infoModal: document.getElementById('infoModal')!,
+    addProfileBtn: document.getElementById('addProfileBtn')!,
     closeSpans: document.querySelectorAll('.close-modal'),
-    saveNewProfileBtn: document.getElementById('saveNewProfileBtn'),
-    launchProfileBtn: document.getElementById('launchProfileBtn'),
-    warningEl: document.getElementById('profileWarning'),
-    nameInput: document.getElementById('newProfileName'),
-    id: document.getElementById('newProfileId'),
-    fromProfile: document.getElementById('fromProfile'),
+    saveNewProfileBtn: document.getElementById('saveNewProfileBtn')!,
+    launchProfileBtn: document.getElementById('launchProfileBtn')!,
+    warningEl: document.getElementById('profileWarning')!,
+    nameInput: document.getElementById('newProfileName') as HTMLInputElement,
+    id: document.getElementById('newProfileId') as HTMLInputElement,
+    fromProfile: document.getElementById('fromProfile') as HTMLInputElement,
 
-    infoProfileName: document.getElementById('infoProfileName'),
-    infoProfileId: document.getElementById('infoProfileId'),
-    infoModList: document.getElementById('infoModList'),
-}
+    infoProfileName: document.getElementById('infoProfileName')!,
+    infoProfileId: document.getElementById('infoProfileId')!,
+    infoModList: document.getElementById('infoModList')!,
+};
 
-export function openNewProfileModal(name = '', id = '', fromProfile = '') {
+export function openNewProfileModal(name = '', id = '', fromProfile = ''): void {
     el.warningEl.style.display = 'none';
     el.addProfileModal.style.display = 'flex';
     el.nameInput.focus();
@@ -27,7 +28,7 @@ export function openNewProfileModal(name = '', id = '', fromProfile = '') {
     el.fromProfile.value = fromProfile;
 }
 
-export function showInfoModal(profile) {
+export function showInfoModal(profile: Profile): void {
     el.infoProfileName.textContent = profile.name;
     el.infoProfileId.textContent = profile.id;
     el.infoModList.innerHTML = '';
@@ -57,10 +58,10 @@ export function showInfoModal(profile) {
     el.infoModal.style.display = 'flex';
 }
 
-export function init(app) {// openNewProfileModal
+export function init(app: any): void {
     el.addProfileBtn.addEventListener('click', () => openNewProfileModal());
 
-// Close Modals
+    // Close Modals
     function closeModal() {
         el.infoModal.style.display = 'none';
         el.addProfileModal.style.display = 'none';
@@ -70,26 +71,26 @@ export function init(app) {// openNewProfileModal
     });
 
     window.addEventListener('click', (event) => {
-        if (event.target === el.addProfileModal || event.target === el.infoModal) closeModal()
+        if (event.target === el.addProfileModal || event.target === el.infoModal) closeModal();
     });
 
-// Save New Profile
+    // Save New Profile
     el.saveNewProfileBtn.addEventListener('click', () => {
         const name = el.nameInput.value;
-        const sanitize = str => str.replace(/[^a-zA-Z0-9\s-_]/g, '').replace(/\s+/g, '_');
-        let id_orig, id = id_orig = el.id.value;
-
+        const sanitize = (str: string) => str.replace(/[^a-zA-Z0-9\s-_]/g, '').replace(/\s+/g, '_');
+        const id_orig: string = el.id.value;
+        let id: string = id_orig;
 
         if (!name) {
             alert("Profile Name is required!");
-            return
+            return;
         }
         if (!id) {
-            id = sanitize(name)
-        } else id = sanitize(id)
+            id = sanitize(name);
+        } else id = sanitize(id);
 
-        let append = ''
-        while (app.profileData.some(p => p.id === (id + append))) {
+        let append = '';
+        while (app.profileData.some((p: Profile) => p.id === (id + append))) {
             append = '-' + Math.random().toString(36).slice(2);
         }
 
@@ -101,9 +102,9 @@ export function init(app) {// openNewProfileModal
             return;
         }
 
-        let fromProfile = el.fromProfile.value;
+        let fromProfile: string | null = el.fromProfile.value;
         if (fromProfile === '') {
-            fromProfile = null
+            fromProfile = null;
         }
 
         app.addProfile(name, id, fromProfile);
@@ -115,8 +116,7 @@ export function init(app) {// openNewProfileModal
         el.id.value = '';
     });
 
-
-// Launch Profile
+    // Launch Profile
     el.launchProfileBtn.addEventListener('click', () => {
         if (!app.selectedProfile) {
             alert("Please select a profile to launch.");
@@ -137,8 +137,8 @@ export function init(app) {// openNewProfileModal
         `, [
             {text: 'Skip', onClick: () => app.launch()},
             {text: 'Launch', primary: true, onClick: async () => {
-                const username = document.getElementById('loginUsername').value.trim();
-                const token = document.getElementById('loginToken').value.trim();
+                const username = (document.getElementById('loginUsername') as HTMLInputElement).value.trim();
+                const token = (document.getElementById('loginToken') as HTMLInputElement).value.trim();
 
                 try {
                     await app.launch(username || token ? {username, token} : null);
@@ -152,6 +152,5 @@ export function init(app) {// openNewProfileModal
     // Open Profile Folder
     el.infoProfileId.addEventListener('click', async () => {
         await Neutralino.os.open(await Neutralino.filesystem.getJoinedPath(NL_CWD, 'profile', el.infoProfileId.textContent));
-    })
-
+    });
 }

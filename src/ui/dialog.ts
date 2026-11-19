@@ -1,11 +1,13 @@
+export interface DialogButton {
+    text: string;
+    primary?: boolean;
+    onClick?: () => void;
+}
+
 /**
  * Creates and displays a modal dialog with custom message and buttons.
- *
- * @param {HTMLElement | string} message - content to display in the body
- * @param {Array<{text: string, primary?: boolean, onClick?: () => void}>} buttons - action buttons
- * @param {boolean} allowClose - whether to allow the user to close the dialog by clicking outside of it
  */
-export function dialog(message, buttons = [{ text: 'OK', primary: true}], allowClose = false) {
+export function dialog(message: HTMLElement | string, buttons: DialogButton[] = [{ text: 'OK', primary: true }], allowClose = false): void {
     // Create the overlay
     const modal = document.createElement('div');
     modal.className = 'modal';

@@ -1,13 +1,15 @@
-let app;
+import type { Profile } from "../types";
 
-export function renderTable(dataToRender = app.profileData) {
-    const tbody = document.querySelector('#profilesTable tbody');
+let app: any;
+
+export function renderTable(dataToRender: Profile[] = app.profileData): void {
+    const tbody = document.querySelector('#profilesTable tbody')!;
     tbody.innerHTML = '';
 
     dataToRender.forEach(profile => {
         const dateObj = new Date(profile.lastRun);
-        let lastRunDate = dateObj.toLocaleDateString();
-        let lastRunFull = dateObj.toLocaleString();
+        const lastRunDate = dateObj.toLocaleDateString();
+        const lastRunFull = dateObj.toLocaleString();
         const row = document.createElement('tr');
         row.dataset.id = profile.id;
         if (profile.id === app.selectedProfile) row.classList.add('selected');
@@ -26,9 +28,9 @@ export function renderTable(dataToRender = app.profileData) {
                 `;
 
         // Setup action buttons
-        const infoBtn = row.querySelector('.info-btn');
-        const duplicateBtn = row.querySelector('.duplicate-btn');
-        const deleteBtn = row.querySelector('.delete-btn');
+        const infoBtn = row.querySelector('.info-btn')!;
+        const duplicateBtn = row.querySelector('.duplicate-btn')!;
+        const deleteBtn = row.querySelector('.delete-btn')!;
 
         infoBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -56,18 +58,18 @@ export function renderTable(dataToRender = app.profileData) {
     });
 }
 
-export function reevaluateSearch(term = "") {
+export function reevaluateSearch(term = ""): void {
     term = term.toLowerCase();
-    const filteredData = app.profileData.filter(profile =>
+    const filteredData = app.profileData.filter((profile: Profile) =>
         profile.name.toLowerCase().includes(term)
     );
-    renderTable(filteredData)
+    renderTable(filteredData);
 }
 
-export function sortProfiles(th, overrideOrder = null) {
+export function sortProfiles(th: HTMLElement, overrideOrder: string | null = null): void {
     const column = th.dataset.column;
     const currentOrder = th.dataset.order;
-    const newOrder = overrideOrder || currentOrder === 'asc' ? 'desc' : 'asc';
+    const newOrder = overrideOrder || (currentOrder === 'asc' ? 'desc' : 'asc');
 
     // Reset other headers
     document.querySelectorAll('#profilesTable th').forEach(header => {
@@ -80,23 +82,22 @@ export function sortProfiles(th, overrideOrder = null) {
     th.dataset.order = newOrder;
     th.classList.add(newOrder === 'asc' ? 'sorted-asc' : 'sorted-desc');
 
-    reevaluateSearch(document.getElementById('searchInput').value);
+    reevaluateSearch((document.getElementById('searchInput') as HTMLInputElement).value);
 }
 
-export function setup(APP) {
+export function setup(APP: any): void {
     app = APP;
     // Setup sorting
     document.querySelectorAll('#profilesTable th').forEach(th => {
-        // if (th.dataset.column === 'lastRun') sortProfiles(th, 'desc');
         th.addEventListener('click', () => {
-            sortProfiles(th)
+            sortProfiles(th as HTMLElement);
         });
     });
 
     // Setup search
-    const searchInput = document.getElementById('searchInput');
-    const searchContainer = document.getElementById('searchContainer');
-    const searchIcon = document.getElementById('searchIcon');
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    const searchContainer = document.getElementById('searchContainer')!;
+    const searchIcon = document.getElementById('searchIcon')!;
 
     searchIcon.addEventListener('click', (e) => {
         e.stopPropagation(); // Prevent sorting when clicking the search icon
@@ -109,5 +110,5 @@ export function setup(APP) {
     });
 
     searchInput.addEventListener('input',
-        (e) => reevaluateSearch(e.target.value));
+        (e) => reevaluateSearch((e.target as HTMLInputElement).value));
 }

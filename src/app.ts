@@ -1,31 +1,40 @@
 import UI from './ui';
-import * as Neutralino from "@neutralinojs/lib"
+import * as Neutralino from "@neutralinojs/lib";
 import Factorio from "./factorio";
 import loadingUI from "./ui/loading";
+import type { Profile, Login } from "./types";
 
-(new (class Application {
-    _profile_data = null;
-    get profileData() { if (!this._profile_data) throw new Error('Profile data is not loaded yet'); return this._profile_data; }
-    _selected_profile = null;
+class Application {
+    _profile_data: Profile[] | null = null;
+    get profileData(): Profile[] {
+        if (!this._profile_data) throw new Error('Profile data is not loaded yet');
+        return this._profile_data;
+    }
+
+    _selected_profile: string | null = null;
+
     __dirty = false;
-    get _dirty() {
+    get _dirty(): boolean {
         return this.__dirty;
     }
-    set _dirty(value) {
+    set _dirty(value: boolean) {
         if (!value) this.__dirty = false;
 
         this.__dirty = true;
-        this.save()
+        this.save();
     }
-    factorio = null;
+
+    factorio!: Factorio;
+    ui: any;
+
     constructor() {
-        window.App = this
+        window.App = this;
         window.Neutralino = Neutralino;
 
         this.ui = UI;
         this.factorio = new Factorio(this);
 
-        Neutralino.init()
+        Neutralino.init();
         UI(this);
         document.addEventListener('contextmenu', event => event.preventDefault());
 
@@ -37,7 +46,7 @@ import loadingUI from "./ui/loading";
 
     _lock = false;
 
-    async load(forceReload = false) {
+    async load(forceReload = false): Promise<Profile[] | undefined> {
         // If data is already loaded, return it immediately
         if (this._profile_data && !forceReload) return this._profile_data;
 
@@ -45,53 +54,55 @@ import loadingUI from "./ui/loading";
         this._lock = true;
 
         try {
-            this._profile_data = JSON.parse(await Neutralino.storage.getData('profile_data'))
+            this._profile_data = JSON.parse(await Neutralino.storage.getData('profile_data'));
             this._dirty = false;
         } catch (e) {
             console.warn("Failed to load data due to:", e);
-            console.warn("Setting up default data instead")
-            this._dirty = true
-            this._profile_data = []
+            console.warn("Setting up default data instead");
+            this._dirty = true;
+            this._profile_data = [];
         }
 
         this._lock = false;
 
+        const data = this._profile_data!;
+
         if (!this._selected_profile) {
-            for (let i = 0; i < this._profile_data.length; i++) {
-                if (this._profile_data[i].selected) {
-                    this._selected_profile = this._profile_data[i].id;
+            for (let i = 0; i < data.length; i++) {
+                if (data[i].selected) {
+                    this._selected_profile = data[i].id;
                     break;
                 }
             }
-            if (!this._selected_profile && this._profile_data.length > 0) {
-                this._selected_profile = this._profile_data[0].id;
-                this._profile_data[0].selected = true;
+            if (!this._selected_profile && data.length > 0) {
+                this._selected_profile = data[0].id;
+                data[0].selected = true;
                 this._dirty = true;
             }
         }
 
         this.render();
-        return this._profile_data
+        return data;
     }
 
-    async save() {
+    async save(): Promise<void> {
         if (this._lock) return;
         this._lock = true;
 
-        await Neutralino.storage.setData('profile_data', JSON.stringify(this._profile_data))
+        await Neutralino.storage.setData('profile_data', JSON.stringify(this._profile_data));
         this._dirty = false;
         this._lock = false;
     }
 
-    _lastSort = { field: null, order: null };
-    sort(field, order = 'desc') {
+    _lastSort: { field: string | null; order: string | null } = { field: null, order: null };
+    sort(field: string, order: string = 'desc'): Profile[] {
         if (!this._profile_data) throw new Error('Profile data is not loaded yet');
         this._dirty = true;
         this._lastSort = { field, order };
 
         this._profile_data = this._profile_data.sort((a, b) => {
-            let valA = a[field];
-            let valB = b[field];
+            let valA = (a as any)[field];
+            let valB = (b as any)[field];
 
             switch (field) {
                 case 'totalRuns':
@@ -110,25 +121,24 @@ import loadingUI from "./ui/loading";
         return this._profile_data;
     }
 
-    get selectedProfile() { return this._selected_profile; }
-    set selectedProfile(id) {
+    get selectedProfile(): string | null { return this._selected_profile; }
+    set selectedProfile(id: string) {
         this._dirty = true;
         this._selected_profile = null;
-        for (let i = 0; i < this._profile_data.length; i++) {
-            if (this._profile_data[i].id === id) {
-                this._profile_data[i].selected = true;
+        for (let i = 0; i < this._profile_data!.length; i++) {
+            if (this._profile_data![i].id === id) {
+                this._profile_data![i].selected = true;
                 this._selected_profile = id;
-            } else delete this._profile_data[i].selected;
+            } else delete this._profile_data![i].selected;
         }
 
         if (!this._selected_profile) {
             console.warn('No profile selected. Selecting first profile.');
-            this._selected_profile = this._profile_data[0].id;
+            this._selected_profile = this._profile_data![0].id;
         }
     }
 
-
-    async addProfile(name, id, from = null) {
+    async addProfile(name: string, id: string, from: string | null = null): Promise<void> {
         if (!this._profile_data) throw new Error('Profile data is not loaded yet');
 
         // Check for duplicate ID
@@ -137,22 +147,22 @@ import loadingUI from "./ui/loading";
         }
 
         if (!from) {
-            await Neutralino.filesystem.createDirectory(await Neutralino.filesystem.getJoinedPath('profile', id))
+            await Neutralino.filesystem.createDirectory(await Neutralino.filesystem.getJoinedPath('profile', id));
         } else {
             // show loading UI if copy is taking a long time
-            let done = false
+            let done = false;
             let timeoutID = setTimeout(() => {
-                if (!done) loadingUI.show(`Copying profile ${from} to ${id}...`)
-            }, 500)
+                if (!done) loadingUI.show(`Copying profile ${from} to ${id}...`);
+            }, 500);
 
             await Neutralino.filesystem.copy(
                 await Neutralino.filesystem.getJoinedPath('profile', from),
                 await Neutralino.filesystem.getJoinedPath('profile', id)
-            )
+            );
 
-            clearTimeout(timeoutID)
-            done = true
-            loadingUI.hide()
+            clearTimeout(timeoutID);
+            done = true;
+            loadingUI.hide();
         }
         this._profile_data.push({
             id,
@@ -164,47 +174,49 @@ import loadingUI from "./ui/loading";
         this.render();
     }
 
-    deleteProfile(id) {
+    deleteProfile(id: string): void {
         if (!this._profile_data) throw new Error('Profile data is not loaded yet');
 
         UI.dialog('Are you sure you want to delete this profile? This action cannot be undone.', [
             {text: 'Cancel', primary: true},
             {text: 'Delete Profile', onClick: async () => {
-                this._profile_data = this._profile_data.filter(p => p.id !== id);
+                this._profile_data = this._profile_data!.filter(p => p.id !== id);
                 if (this._selected_profile === id) this._selected_profile = null;
                 this._dirty = true;
                 this.render();
 
-                await Neutralino.filesystem.remove(await Neutralino.filesystem.getJoinedPath('profile', id))
-        }}])
+                await Neutralino.filesystem.remove(await Neutralino.filesystem.getJoinedPath('profile', id));
+            }}
+        ]);
     }
 
-    _closing = undefined;
-    async exit() {
+    _closing = false;
+    async exit(): Promise<void> {
         if (this._closing) return;
         this._closing = true;
         if (this._dirty) await this.save();
         await Neutralino.app.exit();
     }
 
-    render() {
+    render(): void {
         UI.table.renderTable(this.profileData);
     }
 
     /**
      * Launches the selected profile.
-     * @param {{username?: string, token?: string}} [login]
-     * @returns {Promise<void>}
+     * @param login optional Factorio.com credentials
      */
-    async launch(login = null) {
-        let profile;
+    async launch(login: Login | null = null): Promise<void> {
+        let profile: Profile | undefined;
         for (let i = 0; i < this.profileData.length; i++) {
-            if (this._profile_data[i].id === this.selectedProfile) profile = this._profile_data[i];
+            if (this._profile_data![i].id === this.selectedProfile) profile = this._profile_data![i];
         }
         if (!profile) throw new Error('Selected profile not found');
         profile.lastRun = (new Date()).getTime();
         profile.totalRuns++;
         await this.save();
-        await this.factorio.launch(this.selectedProfile, login);
+        await this.factorio.launch(profile.id, login);
     }
-})());
+}
+
+new Application();
