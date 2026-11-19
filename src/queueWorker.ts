@@ -26,10 +26,17 @@ export default class QueueWorker {
         }
 
         this._running++;
-        task().finally(() => {
-            this._running--;
-            this._nextTask();
-        });
+        task().then(
+            () => {
+                this._running--;
+                this._nextTask();
+            },
+            (err) => {
+                this._running--;
+                this._promiseControls?.reject(err);
+                this._nextTask();
+            }
+        );
     }
 
     run(): Promise<void> {
