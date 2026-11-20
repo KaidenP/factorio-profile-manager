@@ -26,13 +26,13 @@ Neutralino native API bridge.
 From the project `README.md`:
 
 - [x] Clean UI
-- [ ] Automatic downloads of the latest Factorio version
-- [ ] Mod list
-- [ ] One copy of the game for all profiles
+- [x] Automatic downloads of the latest Factorio version
+- [x] Mod list (read/toggle/remove + mod portal search/download)
+- [x] One copy of the game for all profiles
 
-The "Installed Mods" panel in the UI currently shows mock data and is labeled
-*"Not Implemented"*. See [Architecture](architecture.md) for where these features
-would hook in.
+The "Installed Mods" panel reads each profile's `mod-list.json` and supports
+enabling, disabling, removing, and downloading mods from the Factorio mod
+portal. See [Architecture](architecture.md) for where these features hook in.
 
 ## Technology stack
 

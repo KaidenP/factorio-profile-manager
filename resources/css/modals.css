@@ -88,13 +88,78 @@
 .mod-item input[type="checkbox"] {
     margin-right: 10px;
     accent-color: var(--accent-color);
-    pointer-events: none;
     width: auto;
 }
 
 .mod-item label {
     cursor: default;
     margin-bottom: 0;
+    flex: 1;
+}
+
+.mod-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.mod-list-header label {
+    margin-bottom: 0;
+}
+
+.mod-search-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.mod-search-bar input {
+    flex: 1;
+}
+
+.mod-search-results {
+    max-height: 320px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mod-search-result {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-primary);
+}
+
+.mod-search-result > div {
+    flex: 1;
+    min-width: 0;
+}
+
+.mod-search-title {
+    font-weight: 600;
+}
+
+.mod-search-name,
+.mod-search-summary {
+    opacity: 0.7;
+    font-size: 0.9em;
+}
+
+.mod-search-version {
+    color: var(--accent-color);
+    font-size: 0.9em;
+}
+
+.mod-search-summary {
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #info-container {

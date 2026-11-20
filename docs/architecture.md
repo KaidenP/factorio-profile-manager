@@ -212,15 +212,17 @@ The app uses a dark theme with an orange accent (`#ff9f1c`).
 - `documentRoot`: `/resources/`, `url`: `/`.
 - `tokenSecurity`: `one-time`, `enableNativeAPI: true`.
 - `nativeAllowList` enables `app.*`, `os.*`, `debug.*`, `window.*`, `computer.*`,
-  `filesystem.*`, `storage.*`, and `resources.*`.
+  `filesystem.*`, `storage.*`, `resources.*`, and `net.*`.
 - `dataLocation`: `./`.
 - `cli` pins `binaryVersion` and `clientVersion` to `6.4.0`.
 
 ## Known limitations / unimplemented areas
 
-- **Mod list:** the info modal renders a hard-coded mock list and is marked
-  *"Not Implemented"*.
-- **Automatic Factorio downloads** and **one shared game copy** are listed as
-  planned features in the README but are not implemented.
+- **Mod list:** the info modal reads each profile's `mods/mod-list.json` and
+  supports enable/disable, remove, and portal search/download (`src/mods.ts`,
+  `src/modPortal.ts`).
+- **Automatic Factorio downloads** and **one shared game copy** are implemented
+  via the version manager and download API (`src/factorio.ts`,
+  `src/factorioApi.ts`).
 - The app currently exits after launching Factorio (it does not stay resident to
   watch the game process).

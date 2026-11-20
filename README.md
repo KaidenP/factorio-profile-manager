@@ -12,9 +12,9 @@ See the [Releases Page](https://github.com/KaidenP/factorio-profile-manager/rele
 
 ## Features
 - [x] Clean UI
-- [ ] Automatic Downloads of the latest Factorio Version
-- [ ] Mod List
-- [ ] One Copy of the game for all profiles
+- [x] Automatic Downloads of the latest Factorio Version
+- [x] Mod List
+- [x] One Copy of the game for all profiles
 
 
 ## Contributors

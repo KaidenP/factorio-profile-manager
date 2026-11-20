@@ -1,9 +1,12 @@
 import { dialog } from "./dialog";
 import { escapeHtml } from "../util/util";
 import { listAvailableVersions } from "../factorioApi";
+import { readModList, setModEnabled, removeMod, BASE_MOD } from "../mods";
+import { searchMods, installMod, releaseFromSearch } from "../modPortal";
 import type { Profile, Login } from "../types";
 
 let app: any;
+let currentProfile: Profile | null = null;
 
 const el = {
     addProfileModal: document.getElementById('addProfileModal')!,
@@ -23,6 +26,7 @@ const el = {
     infoProfileId: document.getElementById('infoProfileId')!,
     infoProfileVersion: document.getElementById('infoProfileVersion')!,
     infoModList: document.getElementById('infoModList')!,
+    addModBtn: document.getElementById('addModBtn')!,
 };
 
 export async function openNewProfileModal(name = '', id = '', fromProfile = ''): Promise<void> {
@@ -168,35 +172,161 @@ export async function openDownloadModal(): Promise<void> {
     populate();
 }
 
-export function showInfoModal(profile: Profile): void {
+export async function showInfoModal(profile: Profile): Promise<void> {
+    currentProfile = profile;
     el.infoProfileName.textContent = profile.name;
     el.infoProfileId.textContent = profile.id;
     el.infoProfileVersion.textContent = profile.version || 'Not set';
     el.infoModList.innerHTML = '';
 
-    // Mock Mod Data (Replace with real data from profile later)
-    const mods = [
-        {name: "base", enabled: true},
-        {name: "factorio-standard-library", enabled: true},
-        {name: "space-exploration", enabled: true},
-        {name: "krastorio2", enabled: false},
-        {name: "fneic", enabled: true},
-        {name: "helmod", enabled: true},
-        {name: "ltn", enabled: false},
-        {name: "jetpack", enabled: true}
-    ];
+    const mods = await readModList(profile.id);
+
+    if (mods.length === 0) {
+        const p = document.createElement('p');
+        p.className = 'empty-text';
+        p.textContent = 'No mods installed. Launch this profile once to initialize the mod folder, or add a mod below.';
+        el.infoModList.appendChild(p);
+    }
 
     mods.forEach(mod => {
         const div = document.createElement('div');
         div.className = 'mod-item';
-        div.innerHTML = `
-                <input type="checkbox" ${mod.enabled ? 'checked' : ''}>
-                <label>${mod.name}</label>
-            `;
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = mod.enabled;
+        checkbox.disabled = mod.name === BASE_MOD;
+
+        const label = document.createElement('label');
+        label.textContent = mod.name;
+
+        if (mod.name !== BASE_MOD) {
+            checkbox.addEventListener('change', async () => {
+                try {
+                    await setModEnabled(profile.id, mod.name, checkbox.checked);
+                } catch (e) {
+                    checkbox.checked = !checkbox.checked;
+                    dialog(`<p>Failed to update mod:</p><pre>${escapeHtml(e?.message || e)}</pre>`, [{text: 'OK', primary: true}], true);
+                }
+            });
+        }
+
+        div.appendChild(checkbox);
+        div.appendChild(label);
+
+        if (mod.name !== BASE_MOD) {
+            const rm = document.createElement('button');
+            rm.className = 'action-btn delete-btn';
+            rm.textContent = '✕';
+            rm.title = 'Remove mod';
+            rm.addEventListener('click', () => {
+                dialog(`<p>Remove mod <strong>${escapeHtml(mod.name)}</strong>? This deletes its files from this profile.</p>`, [
+                    {text: 'Cancel', primary: true},
+                    {text: 'Remove', onClick: async () => {
+                        await removeMod(profile.id, mod.name);
+                        showInfoModal(profile);
+                    }}
+                ], true);
+            });
+            div.appendChild(rm);
+        }
+
         el.infoModList.appendChild(div);
     });
 
     el.infoModal.style.display = 'flex';
+}
+
+function renderModResults(container: HTMLElement, results: any[], profile: Profile, creds: { username: string; token: string }): void {
+    container.innerHTML = '';
+    if (results.length === 0) {
+        container.innerHTML = '<p class="empty-text">No mods found.</p>';
+        return;
+    }
+
+    results.forEach(r => {
+        const release = releaseFromSearch(r);
+        const row = document.createElement('div');
+        row.className = 'mod-search-result';
+
+        const title = r.title && r.title !== r.name
+            ? `${r.title} <span class="mod-search-name">(${r.name})</span>`
+            : r.name;
+        row.innerHTML = `
+            <div>
+                <div class="mod-search-title">${escapeHtml(title)} <span class="mod-search-version">${escapeHtml(release?.version || '')}</span></div>
+                <div class="mod-search-summary">${escapeHtml(r.summary || '')}</div>
+            </div>
+        `;
+
+        const installBtn = document.createElement('button');
+        installBtn.className = 'footer-btn primary';
+        if (!release) {
+            installBtn.textContent = 'Unavailable';
+            installBtn.disabled = true;
+        } else {
+            installBtn.textContent = 'Install';
+            installBtn.addEventListener('click', async () => {
+                installBtn.disabled = true;
+                installBtn.textContent = 'Installing…';
+                try {
+                    await installMod(profile.id, r.name, release, creds.username, creds.token);
+                    await showInfoModal(profile);
+                    installBtn.textContent = 'Installed ✓';
+                } catch (e) {
+                    installBtn.disabled = false;
+                    installBtn.textContent = 'Install';
+                    dialog(`<p>Install failed:</p><pre>${escapeHtml(e?.message || e)}</pre>`, [{text: 'OK', primary: true}], true);
+                }
+            });
+        }
+
+        row.appendChild(installBtn);
+        container.appendChild(row);
+    });
+}
+
+export async function openAddModDialog(profile: Profile): Promise<void> {
+    const container = document.createElement('div');
+    container.innerHTML = `
+        <h2>Add Mod</h2>
+        <p>Search the Factorio mod portal. Uses your active account.</p>
+        <div class="mod-search-bar">
+            <input type="text" id="modSearchInput" placeholder="Search mods…">
+            <button class="footer-btn primary" id="modSearchBtn">Search</button>
+        </div>
+        <div id="modSearchResults" class="mod-search-results"></div>
+    `;
+
+    dialog(container, [{text: 'Done', primary: true}], true);
+
+    const input = container.querySelector('#modSearchInput') as HTMLInputElement;
+    const btn = container.querySelector('#modSearchBtn') as HTMLButtonElement;
+    const resultsEl = container.querySelector('#modSearchResults') as HTMLDivElement;
+
+    const doSearch = async () => {
+        const query = input.value.trim();
+        if (!query) {
+            alert('Enter a search term.');
+            return;
+        }
+        const login = app.logins?.activeLogin;
+        if (!login?.username || !login?.token) {
+            resultsEl.innerHTML = '<p class="empty-text">Add a Factorio account first (via Manage Logins) so the mod portal can authorize search.</p>';
+            return;
+        }
+        resultsEl.innerHTML = '<p class="empty-text">Searching…</p>';
+        try {
+            const version = profile.version || '2.1';
+            const results = await searchMods(query, version, login.username, login.token);
+            renderModResults(resultsEl, results, profile, { username: login.username, token: login.token });
+        } catch (e) {
+            resultsEl.innerHTML = `<pre>${escapeHtml(e?.message || e)}</pre>`;
+        }
+    };
+
+    btn.addEventListener('click', doSearch);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
 }
 
 export function init(APP: any): void {
@@ -204,6 +334,9 @@ export function init(APP: any): void {
 
     el.addProfileBtn.addEventListener('click', () => openNewProfileModal());
     el.versionsBtn.addEventListener('click', () => openVersionsModal());
+    el.addModBtn.addEventListener('click', () => {
+        if (currentProfile) openAddModDialog(currentProfile);
+    });
 
     // Close Modals
     function closeModal() {

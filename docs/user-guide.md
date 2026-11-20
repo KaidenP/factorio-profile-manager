@@ -64,7 +64,10 @@ Hover over a profile row and click the info action button (**👁**). The dialog
 shows the profile name and directory id. Clicking the directory id opens the
 profile's folder in the file explorer.
 
-> The "Installed Mods" list is not implemented yet and shows placeholder data.
+The dialog also lists the profile's installed mods (read from
+`mod-list.json`). You can enable/disable a mod with its checkbox, remove a mod
+with the **✕** button, or click **Add Mod…** to search the Factorio mod portal
+and download a mod straight into the profile.
 
 ## Launching a profile
 
