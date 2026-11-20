@@ -1,6 +1,5 @@
 import { dialog } from "./dialog";
-import { escapeHtml } from "../util/util";
-import type { Profile, Login, StoredLogin } from "../types";
+import type { Profile, Login } from "../types";
 
 const el = {
     addProfileModal: document.getElementById('addProfileModal')!,
@@ -118,56 +117,21 @@ export function init(app: any): void {
     });
 
     // Launch Profile
-    el.launchProfileBtn.addEventListener('click', () => {
+    el.launchProfileBtn.addEventListener('click', async () => {
         if (!app.selectedProfile) {
             alert("Please select a profile to launch.");
             return;
         }
 
-        const savedLogins: StoredLogin[] = app.logins.logins;
+        // The active account is selected from the title-bar dropdown / Manage Logins.
+        const active = app.logins?.activeLogin;
+        const login: Login | null = active ? { username: active.username, token: active.token } : null;
 
-        const loginOptions = savedLogins.length === 0
-            ? '<p class="empty-text">No saved logins yet. Enter credentials below or skip.</p>'
-            : savedLogins.map(l => `
-                <label class="login-option">
-                    <input type="radio" name="loginChoice" value="${escapeHtml(l.id)}">
-                    <span>${escapeHtml(l.username)}</span>
-                </label>
-            `).join('');
-
-        dialog(`
-            <h2>Launch Profile</h2>
-            <p>Choose a saved login, enter new credentials, or skip to sign in from the game.</p>
-            <div id="loginOptions">${loginOptions}</div>
-            <div class="form-group">
-                <label for="loginUsername">Username</label>
-                <input type="text" id="loginUsername" placeholder="Factorio username" autocomplete="off">
-            </div>
-            <div class="form-group">
-                <label for="loginToken">Token</label>
-                <input type="password" id="loginToken" placeholder="Factorio token" autocomplete="off">
-            </div>
-        `, [
-            {text: 'Skip', onClick: () => app.launch()},
-            {text: 'Launch', primary: true, onClick: async () => {
-                const username = (document.getElementById('loginUsername') as HTMLInputElement).value.trim();
-                const token = (document.getElementById('loginToken') as HTMLInputElement).value.trim();
-                const selected = document.querySelector('input[name="loginChoice"]:checked') as HTMLInputElement | null;
-
-                let login: Login | null = null;
-                if (selected) {
-                    login = savedLogins.find(l => l.id === selected.value) || null;
-                } else if (username || token) {
-                    login = { username, token };
-                }
-
-                try {
-                    await app.launch(login);
-                } catch (e) {
-                    dialog(`<p>Failed to launch profile:</p><pre>${e?.message || e}</pre>`, [{text: 'OK', primary: true}], true);
-                }
-            }}
-        ], true);
+        try {
+            await app.launch(login);
+        } catch (e) {
+            dialog(`<p>Failed to launch profile:</p><pre>${e?.message || e}</pre>`, [{text: 'OK', primary: true}], true);
+        }
     });
 
     // Open Profile Folder

@@ -2,10 +2,13 @@ const path = require('path');
 
 module.exports = {
     mode: 'development',
-    entry: './src/app.ts',
+    entry: {
+        app: './src/app.ts',
+        'logins-window': './src/logins-window.ts',
+    },
     output: {
         path: path.resolve(__dirname, 'resources/js/build'),
-        filename: 'app.bundle.js',
+        filename: '[name].bundle.js',
     },
     devtool: 'source-map',
     resolve: {

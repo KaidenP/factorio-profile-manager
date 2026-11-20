@@ -43,8 +43,7 @@
       "maximize": false,
       "hidden": false,
       "resizable": false,
-      "exitProcessOnClose": true,
-      "webviewArgs": "--msEdgeDevToolsWdpRemoteDebugging --remote-debugging-port=9222"
+      "exitProcessOnClose": true
     }
   },
   "cli": {

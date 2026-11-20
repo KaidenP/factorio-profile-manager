@@ -41,6 +41,13 @@ class Application {
         UI(this);
         document.addEventListener('contextmenu', event => event.preventDefault());
 
+        // Reload saved logins when this window regains focus (the Manage
+        // Logins window is a separate process and edits the shared storage).
+        Neutralino.events.on('windowFocus', async () => {
+            await this.logins.load(true);
+            this.ui.window.sync(this);
+        });
+
         (async () => {
             await this.load();
             await this.logins.load();

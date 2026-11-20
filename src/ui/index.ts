@@ -1,5 +1,4 @@
 import * as modals from './modals';
-import * as logins from './logins';
 import * as window from './window';
 import LoadingUI from "./loading";
 import * as table from "./table";
@@ -10,12 +9,10 @@ const UI: any = function (app: any) {
 
     window.setup(app);
     modals.init(app);
-    logins.init(app);
     table.setup(app);
 };
 
 UI.modals = modals;
-UI.logins = logins;
 UI.window = window;
 UI.loading = LoadingUI;
 UI.table = table;

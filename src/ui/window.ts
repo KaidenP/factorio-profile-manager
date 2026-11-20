@@ -29,7 +29,13 @@ export function setup(app: any): void {
 
     accountManageBtn.addEventListener('click', () => {
         closeAccountMenu();
-        app.ui.logins.openManageModal(app);
+        Neutralino.window.create('/logins.html', {
+            title: 'Manage Logins',
+            width: 520,
+            height: 720,
+            resizable: false,
+            exitProcessOnClose: true,
+        });
     });
 
     // Close the dropdown when clicking anywhere outside of it.
@@ -42,7 +48,7 @@ export function setup(app: any): void {
 
 /**
  * Keep the title-bar account menu and username label in sync with the
- * current active login. Called from Application.render().
+ * current app state. Called from Application.render().
  */
 export function sync(app: any): void {
     const userEl = document.getElementById('titlebarUser')!;
@@ -56,7 +62,7 @@ export function sync(app: any): void {
     loginListEl.innerHTML = '';
 
     if (logins.length === 0) {
-        loginListEl.innerHTML = '<div class="account-option muted">No saved logins</div>';
+        loginListEl.innerHTML = '<div class="account-option muted">No saved accounts</div>';
         return;
     }
 
