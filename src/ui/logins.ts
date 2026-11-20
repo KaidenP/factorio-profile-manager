@@ -5,7 +5,6 @@ import type { StoredLogin } from "../types";
 
 const el = {
     loginsModal: document.getElementById('loginsModal')!,
-    manageLoginsBtn: document.getElementById('manageLoginsBtn')!,
     loginsList: document.getElementById('loginsList')!,
     // Manual token entry
     newLoginUsername: document.getElementById('newLoginUsername') as HTMLInputElement,
@@ -93,8 +92,6 @@ export function openManageModal(app: any): void {
 }
 
 export function init(app: any): void {
-    el.manageLoginsBtn.addEventListener('click', () => openManageModal(app));
-
     el.closeSpan.addEventListener('click', () => {
         el.loginsModal.style.display = 'none';
     });

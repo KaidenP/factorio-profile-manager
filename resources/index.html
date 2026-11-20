@@ -10,7 +10,13 @@
     <span id="appTitle">Factorio Profile Manager</span>
     <div id="titlebarControls">
         <span id="titlebarUser" class="titlebar-user">No account</span>
-        <select id="titlebarProfileSelect" class="titlebar-profile-select" title="Select Profile"></select>
+        <div id="accountMenu" class="account-menu">
+            <button id="accountMenuBtn" class="account-btn" title="Select account">👤</button>
+            <div id="accountDropdown" class="account-dropdown" style="display:none;">
+                <div id="accountLoginList" class="account-login-list"></div>
+                <button id="accountManageBtn" class="account-manage">Manage Logins…</button>
+            </div>
+        </div>
         <div id="closeBtn" title="Close Application">🞮</div>
     </div>
 </div>
@@ -41,7 +47,6 @@
 <div id="footer">
     <button id="addProfileBtn" class="footer-btn">Add Profile</button>
     <button id="launchProfileBtn" class="footer-btn primary">Launch Profile</button>
-    <button id="manageLoginsBtn" class="footer-btn">Manage Logins</button>
 </div>
 
 <!-- Add Profile Modal -->

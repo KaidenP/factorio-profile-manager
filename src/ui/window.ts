@@ -1,10 +1,18 @@
 import * as Neutralino from "@neutralinojs/lib";
-import type { Profile } from "../types";
+import { escapeHtml } from "../util/util";
+import type { StoredLogin } from "../types";
+
+function closeAccountMenu(): void {
+    const d = document.getElementById('accountDropdown');
+    if (d) d.style.display = 'none';
+}
 
 export function setup(app: any): void {
     const closeBtn = document.getElementById('closeBtn')!;
     const titlebarControls = document.getElementById('titlebarControls')!;
-    const profileSelect = document.getElementById('titlebarProfileSelect') as HTMLSelectElement;
+    const accountMenuBtn = document.getElementById('accountMenuBtn')!;
+    const accountDropdown = document.getElementById('accountDropdown')!;
+    const accountManageBtn = document.getElementById('accountManageBtn')!;
 
     Neutralino.window.setDraggableRegion(document.getElementById('windowGrip')!, {
         exclude: [titlebarControls]
@@ -14,31 +22,56 @@ export function setup(app: any): void {
         app.exit();
     });
 
-    profileSelect.addEventListener('change', () => {
-        app.selectedProfile = profileSelect.value;
-        app.render();
+    accountMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        accountDropdown.style.display = accountDropdown.style.display === 'none' ? 'block' : 'none';
+    });
+
+    accountManageBtn.addEventListener('click', () => {
+        closeAccountMenu();
+        app.ui.logins.openManageModal(app);
+    });
+
+    // Close the dropdown when clicking anywhere outside of it.
+    document.addEventListener('click', (e) => {
+        if (!(e.target as HTMLElement).closest('#accountMenu')) {
+            closeAccountMenu();
+        }
     });
 }
 
 /**
- * Keep the title-bar profile selector and active-account label in sync with
- * the current app state. Called from Application.render().
+ * Keep the title-bar account menu and username label in sync with the
+ * current active login. Called from Application.render().
  */
 export function sync(app: any): void {
-    const profileSelect = document.getElementById('titlebarProfileSelect') as HTMLSelectElement;
     const userEl = document.getElementById('titlebarUser')!;
-
-    const current = app.selectedProfile;
-    profileSelect.innerHTML = '';
-    app.profileData.forEach((p: Profile) => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = p.name;
-        if (p.id === current) opt.selected = true;
-        profileSelect.appendChild(opt);
-    });
+    const loginListEl = document.getElementById('accountLoginList')!;
 
     const active = app.logins?.activeLogin;
     userEl.textContent = active ? active.username : 'No account';
     userEl.title = active ? `Active Factorio account: ${active.username}` : 'No Factorio account selected';
+
+    const logins = app.logins?.logins ?? [];
+    loginListEl.innerHTML = '';
+
+    if (logins.length === 0) {
+        loginListEl.innerHTML = '<div class="account-option muted">No saved logins</div>';
+        return;
+    }
+
+    logins.forEach((l: StoredLogin) => {
+        const opt = document.createElement('div');
+        opt.className = 'account-option' + (l.selected ? ' active' : '');
+        opt.innerHTML = `
+            <span class="check">${l.selected ? '✓' : ''}</span>
+            <span>${escapeHtml(l.username)}</span>
+        `;
+        opt.addEventListener('click', async () => {
+            await app.logins.setDefault(l.id);
+            closeAccountMenu();
+            sync(app);
+        });
+        loginListEl.appendChild(opt);
+    });
 }
