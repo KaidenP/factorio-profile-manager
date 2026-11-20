@@ -7,6 +7,17 @@ function closeAccountMenu(): void {
     if (d) d.style.display = 'none';
 }
 
+/** Open the Manage Logins window (a separate Neutralino window). */
+export function openManageLogins(): void {
+    Neutralino.window.create('/logins.html', {
+        title: 'Manage Logins',
+        width: 520,
+        height: 720,
+        resizable: false,
+        exitProcessOnClose: true,
+    });
+}
+
 export function setup(app: any): void {
     const closeBtn = document.getElementById('closeBtn')!;
     const titlebarControls = document.getElementById('titlebarControls')!;
@@ -29,13 +40,7 @@ export function setup(app: any): void {
 
     accountManageBtn.addEventListener('click', () => {
         closeAccountMenu();
-        Neutralino.window.create('/logins.html', {
-            title: 'Manage Logins',
-            width: 520,
-            height: 720,
-            resizable: false,
-            exitProcessOnClose: true,
-        });
+        openManageLogins();
     });
 
     // Close the dropdown when clicking anywhere outside of it.

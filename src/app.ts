@@ -52,6 +52,12 @@ class Application {
             await this.load();
             await this.logins.load();
             this.ui.window.sync(this);
+
+            // First boot: no saved accounts yet, so prompt for a login.
+            if (this.logins.logins.length === 0) {
+                this.ui.window.openManageLogins();
+            }
+
             await this.factorio.checkInstalled();
         })();
     }
@@ -150,7 +156,7 @@ class Application {
         }
     }
 
-    async addProfile(name: string, id: string, from: string | null = null): Promise<void> {
+    async addProfile(name: string, id: string, version: string, from: string | null = null): Promise<void> {
         if (!this._profile_data) throw new Error('Profile data is not loaded yet');
 
         // Check for duplicate ID
@@ -180,7 +186,8 @@ class Application {
             id,
             name,
             lastRun: 0,
-            totalRuns: 0
+            totalRuns: 0,
+            version
         });
         this._dirty = true;
         this.render();
@@ -228,7 +235,12 @@ class Application {
         profile.lastRun = (new Date()).getTime();
         profile.totalRuns++;
         await this.save();
-        await this.factorio.launch(profile.id, login);
+        await this.factorio.launch(profile, login);
+    }
+
+    /** Installed Factorio versions (shared across profiles). */
+    async getInstalledVersions(): Promise<string[]> {
+        return this.factorio.getInstalledVersions();
     }
 }
 

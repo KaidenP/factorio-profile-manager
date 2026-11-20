@@ -3,6 +3,7 @@ export interface Profile {
     name: string;
     lastRun: number;
     totalRuns: number;
+    version?: string;
     selected?: boolean;
 }
 

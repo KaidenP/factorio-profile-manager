@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Factorio from '../src/factorio';
+import type { Profile } from '../src/types';
 
 function makeNeutralino() {
     const filesystem = {
@@ -21,13 +22,25 @@ function makeNeutralino() {
     const dialog = vi.fn();
 
     return {
-        filesystem,
-        os,
-        resources,
-        appExit,
-        dialog,
+        filesystem, os, resources, appExit, dialog,
         Neutralino: { filesystem, os, resources, app: { exit: appExit } },
     };
+}
+
+const profile = (overrides: Partial<Profile> = {}): Profile => ({
+    id: 'myprofile', name: 'My Profile', lastRun: 0, totalRuns: 0, version: '2.1.24', ...overrides
+});
+
+function mockValidVersion(mocks: ReturnType<typeof makeNeutralino>, version = '2.1.24', exeSize = 49_415_632): void {
+    mocks.filesystem.getStats.mockImplementation(async (path: string) => {
+        if (path === `versions/${version}/data`) return { size: 1, isFile: false, isDirectory: true };
+        if (path === `versions/${version}/bin/x64/factorio.exe`) return { size: exeSize, isFile: true, isDirectory: false };
+        throw new Error(`unexpected stats: ${path}`);
+    });
+    mocks.filesystem.readDirectory.mockImplementation(async (path: string) => {
+        if (path === `versions/${version}/bin`) return [{ entry: 'x64', path: `versions/${version}/bin/x64`, type: 'DIRECTORY' }];
+        throw new Error(`unexpected readDirectory: ${path}`);
+    });
 }
 
 describe('Factorio.launch', () => {
@@ -38,17 +51,17 @@ describe('Factorio.launch', () => {
         mocks = makeNeutralino();
         (globalThis as any).Neutralino = mocks.Neutralino;
         f = new Factorio({ ui: { dialog: mocks.dialog }, exit: mocks.appExit });
-        f.path = 'factorio/bin/x64/factorio.exe';
     });
 
     it('writes service-token as login.token (not login.username)', async () => {
+        mockValidVersion(mocks);
         mocks.filesystem.readFile.mockImplementation(async (path: string) => {
             if (path === 'profile/myprofile/player-data.json') throw new Error('not found');
-            if (path === 'factorio/config/config.ini') return 'write-data=default';
+            if (path === 'versions/2.1.24/config/config.ini') return 'write-data=default';
             throw new Error(`unexpected read: ${path}`);
         });
 
-        await f.launch('myprofile', { username: 'alice', token: 'SECRET' });
+        await f.launch(profile(), { username: 'alice', token: 'SECRET' });
 
         const playerDataCall = mocks.filesystem.writeFile.mock.calls.find(c => c[0] === 'profile/myprofile/player-data.json');
         expect(playerDataCall).toBeTruthy();
@@ -58,53 +71,52 @@ describe('Factorio.launch', () => {
     });
 
     it('writes player-data.json to the profile write-data directory', async () => {
+        mockValidVersion(mocks);
         mocks.filesystem.readFile.mockImplementation(async (path: string) => {
             if (path === 'profile/myprofile/player-data.json') throw new Error('not found');
-            if (path === 'factorio/config/config.ini') return 'write-data=default';
+            if (path === 'versions/2.1.24/config/config.ini') return 'write-data=default';
             throw new Error(`unexpected read: ${path}`);
         });
 
-        await f.launch('myprofile', { username: 'alice', token: 'SECRET' });
+        await f.launch(profile(), { username: 'alice', token: 'SECRET' });
 
-        expect(mocks.filesystem.writeFile).toHaveBeenCalledWith(
-            'profile/myprofile/player-data.json',
-            expect.any(String)
-        );
+        expect(mocks.filesystem.writeFile).toHaveBeenCalledWith('profile/myprofile/player-data.json', expect.any(String));
     });
 
     it('merges credentials into an existing player-data.json', async () => {
+        mockValidVersion(mocks);
         mocks.filesystem.readFile.mockImplementation(async (path: string) => {
             if (path === 'profile/myprofile/player-data.json') return '{"existing": true}';
-            if (path === 'factorio/config/config.ini') return 'write-data=default';
+            if (path === 'versions/2.1.24/config/config.ini') return 'write-data=default';
             throw new Error(`unexpected read: ${path}`);
         });
 
-        await f.launch('myprofile', { username: 'alice', token: 'SECRET' });
+        await f.launch(profile(), { username: 'alice', token: 'SECRET' });
 
-        const playerDataCall = mocks.filesystem.writeFile.mock.calls.find(c => c[0] === 'profile/myprofile/player-data.json');
-        const written = JSON.parse(playerDataCall![1]);
+        const call = mocks.filesystem.writeFile.mock.calls.find(c => c[0] === 'profile/myprofile/player-data.json');
+        const written = JSON.parse(call![1]);
         expect(written.existing).toBe(true);
         expect(written['service-username']).toBe('alice');
     });
 
-    it('rewrites write-data in config.ini to point at the profile', async () => {
+    it('rewrites write-data in the version config.ini to point at the profile', async () => {
+        mockValidVersion(mocks);
         mocks.filesystem.readFile.mockImplementation(async (path: string) => {
-            if (path === 'factorio/config/config.ini') return 'write-data=__PATH__executable__\\default';
+            if (path === 'versions/2.1.24/config/config.ini') return 'write-data=__PATH__executable__\\default';
             throw new Error(`unexpected read: ${path}`);
         });
 
-        await f.launch('myprofile');
+        await f.launch(profile());
 
-        const configCall = mocks.filesystem.writeFile.mock.calls.find(c => c[0] === 'factorio/config/config.ini');
+        const configCall = mocks.filesystem.writeFile.mock.calls.find(c => c[0] === 'versions/2.1.24/config/config.ini');
         expect(configCall).toBeTruthy();
-        expect(configCall![1]).toContain('write-data=__PATH__executable__\\..\\..\\..\\profile\\myprofile');
+        expect(configCall![1]).toContain('write-data=__PATH__executable__\\..\\..\\..\\..\\profile\\myprofile');
     });
 
-    it('does not launch and warns when Factorio is not installed', async () => {
-        f.path = null;
-        mocks.filesystem.getStats.mockRejectedValueOnce(new Error('not installed')); // detect() -> false
+    it('does not launch and warns when the profile version is not installed', async () => {
+        mocks.filesystem.getStats.mockRejectedValueOnce(new Error('no data dir')); // detectVersion -> null
 
-        await f.launch('myprofile');
+        await f.launch(profile());
 
         expect(mocks.os.execCommand).not.toHaveBeenCalled();
         expect(mocks.appExit).not.toHaveBeenCalled();
@@ -112,15 +124,16 @@ describe('Factorio.launch', () => {
     });
 
     it('launches factorio.exe and exits the app', async () => {
+        mockValidVersion(mocks);
         mocks.filesystem.readFile.mockImplementation(async (path: string) => {
-            if (path === 'factorio/config/config.ini') return 'write-data=default';
+            if (path === 'versions/2.1.24/config/config.ini') return 'write-data=default';
             throw new Error(`unexpected read: ${path}`);
         });
 
-        await f.launch('myprofile');
+        await f.launch(profile());
 
         expect(mocks.os.execCommand).toHaveBeenCalledWith(
-            expect.stringContaining('factorio/bin/x64/factorio.exe'),
+            expect.stringContaining('versions/2.1.24/bin/x64/factorio.exe'),
             { background: true }
         );
         expect(mocks.appExit).toHaveBeenCalled();
@@ -138,44 +151,65 @@ describe('Factorio.detect', () => {
     });
 
     it('locates factorio.exe and sets the path', async () => {
+        mocks.filesystem.readDirectory.mockImplementation(async (path: string) => {
+            if (path === 'versions') return [{ entry: '2.1.24', path: 'versions/2.1.24', type: 'DIRECTORY' }];
+            if (path === 'versions/2.1.24/bin') return [{ entry: 'x64', path: 'versions/2.1.24/bin/x64', type: 'DIRECTORY' }];
+            throw new Error(`unexpected readDirectory: ${path}`);
+        });
         mocks.filesystem.getStats.mockImplementation(async (path: string) => {
-            if (path === 'factorio/data') return { size: 1, isFile: false, isDirectory: true };
-            if (path === 'factorio/bin/x64/factorio.exe') return { size: 49_415_632, isFile: true, isDirectory: false };
+            if (path === 'versions/2.1.24/data') return { size: 1, isFile: false, isDirectory: true };
+            if (path === 'versions/2.1.24/bin/x64/factorio.exe') return { size: 49_415_632, isFile: true, isDirectory: false };
             throw new Error(`unexpected stats: ${path}`);
         });
-        mocks.filesystem.readDirectory.mockResolvedValueOnce([
-            { entry: 'x64', path: 'factorio/bin/x64', type: 'dir' }
-        ]);
 
         const result = await f.detect();
 
         expect(result).toBe(true);
-        expect(f.path).toBe('factorio/bin/x64/factorio.exe');
+        expect(f.path).toBe('versions/2.1.24/bin/x64/factorio.exe');
     });
 
-    it('returns false when factorio/data is missing (partial install)', async () => {
+    it('returns false when no versions directory exists', async () => {
+        mocks.filesystem.readDirectory.mockRejectedValueOnce(new Error('no versions dir'));
+
+        const result = await f.detect();
+
+        expect(result).toBe(false);
+        expect(f.path).toBeNull();
+    });
+
+    it('returns false when the install is partial (data missing)', async () => {
+        mocks.filesystem.readDirectory.mockImplementation(async (path: string) => {
+            if (path === 'versions') return [{ entry: '2.1.24', path: 'versions/2.1.24', type: 'DIRECTORY' }];
+            throw new Error(`unexpected readDirectory: ${path}`);
+        });
         mocks.filesystem.getStats.mockRejectedValueOnce(new Error('no data dir'));
 
         const result = await f.detect();
 
         expect(result).toBe(false);
         expect(f.path).toBeNull();
-        expect(mocks.filesystem.readDirectory).not.toHaveBeenCalled();
     });
 
     it('returns false when the executable is suspiciously small', async () => {
+        mocks.filesystem.readDirectory.mockImplementation(async (path: string) => {
+            if (path === 'versions') return [{ entry: '2.1.24', path: 'versions/2.1.24', type: 'DIRECTORY' }];
+            if (path === 'versions/2.1.24/bin') return [{ entry: 'x64', path: 'versions/2.1.24/bin/x64', type: 'DIRECTORY' }];
+            throw new Error(`unexpected readDirectory: ${path}`);
+        });
         mocks.filesystem.getStats.mockImplementation(async (path: string) => {
-            if (path === 'factorio/data') return { size: 1, isFile: false, isDirectory: true };
-            if (path === 'factorio/bin/x64/factorio.exe') return { size: 123, isFile: true, isDirectory: false };
+            if (path === 'versions/2.1.24/data') return { size: 1, isFile: false, isDirectory: true };
+            if (path === 'versions/2.1.24/bin/x64/factorio.exe') return { size: 123, isFile: true, isDirectory: false };
             throw new Error(`unexpected stats: ${path}`);
         });
-        mocks.filesystem.readDirectory.mockResolvedValueOnce([
-            { entry: 'x64', path: 'factorio/bin/x64', type: 'dir' }
-        ]);
 
         const result = await f.detect();
 
         expect(result).toBe(false);
         expect(f.path).toBeNull();
+    });
+
+    it('parses a version from a Factorio zip file name', () => {
+        expect(f.parseVersionFromZip('C:/Users/x/Downloads/factorio-space-age_win_2.1.24.zip')).toBe('2.1.24');
+        expect(() => f.parseVersionFromZip('C:/Users/x/Downloads/not-a-factorio.zip')).toThrow();
     });
 });

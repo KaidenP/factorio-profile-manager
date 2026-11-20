@@ -10,18 +10,18 @@ import { ensureDirectory } from "./util";
  *
  * @param filePath - The absolute or relative path to the zip file.
  */
-export async function unzip(filePath: string): Promise<void> {
+export async function unzip(filePath: string, destination: string): Promise<void> {
     try {
         loadingUI.show("Extracting Factorio...", "indeterminate");
 
         try {
-            await extractWithTar(filePath);
+            await extractWithTar(filePath, destination);
         } catch (e) {
             console.warn('Native tar extraction failed; falling back to JavaScript extraction:', e);
-            await extractWithJS(filePath);
+            await extractWithJS(filePath, destination);
         }
 
-        await verifyExtraction();
+        await verifyExtraction(destination);
 
         loadingUI.hide();
         dialog('All files have been extracted successfully!', [{text: 'Okay', primary:true}], true);
@@ -29,7 +29,7 @@ export async function unzip(filePath: string): Promise<void> {
         console.error('Error while unzipping:', e);
         loadingUI.hide();
         try {
-            await Neutralino.filesystem.remove('factorio');
+            await Neutralino.filesystem.remove(destination);
         } catch (e2) {}
         dialog(`Fatal Error While Unzipping: ${e?.message || e}`, [{text: 'Okay', primary: true}]);
     }
@@ -37,15 +37,15 @@ export async function unzip(filePath: string): Promise<void> {
 
 /**
  * Confirms the extraction produced the bulk of the game. Factorio's game
- * data lives in factorio/data/, so a missing (or non-directory) entry means
+ * data lives in <destination>/data/, so a missing (or non-directory) entry means
  * the extraction was interrupted and should be retried rather than launched.
  */
-async function verifyExtraction(): Promise<void> {
+async function verifyExtraction(destination: string): Promise<void> {
     try {
-        const stats = await Neutralino.filesystem.getStats('factorio/data');
-        if (!stats.isDirectory) throw new Error('factorio/data is not a directory');
+        const stats = await Neutralino.filesystem.getStats(`${destination}/data`);
+        if (!stats.isDirectory) throw new Error(`${destination}/data is not a directory`);
     } catch (e) {
-        throw new Error('Extraction appears incomplete (factorio/data is missing). The install may have been interrupted; please try again.');
+        throw new Error('Extraction appears incomplete (factorio data directory is missing). The install may have been interrupted; please try again.');
     }
 }
 
@@ -54,7 +54,7 @@ async function verifyExtraction(): Promise<void> {
  * which reads ZIP natively and avoids Neutralino's slow base64/WebSocket binary
  * bridge. Falls back to `extractWithJS` when tar is unavailable or fails.
  */
-async function extractWithTar(filePath: string): Promise<void> {
+async function extractWithTar(filePath: string, destination: string): Promise<void> {
     const isShellSafe = (p: string) => /^[A-Za-z0-9_.\/\\:-]+$/.test(p);
 
     let target = filePath;
@@ -68,11 +68,11 @@ async function extractWithTar(filePath: string): Promise<void> {
     }
 
     try {
-        try { await Neutralino.filesystem.remove('factorio'); } catch (e) {}
-        await Neutralino.filesystem.createDirectory('factorio');
+        try { await Neutralino.filesystem.remove(destination); } catch (e) {}
+        await ensureDirectory(destination);
 
         const result = await Neutralino.os.execCommand(
-            `tar -xf ${target} --strip-components=1 -C factorio`,
+            `tar -xf ${target} --strip-components=1 -C ${destination}`,
             {background: false}
         );
 
@@ -89,7 +89,7 @@ async function extractWithTar(filePath: string): Promise<void> {
 /**
  * Slower fallback extractor using unzipit + Neutralino's filesystem API.
  */
-async function extractWithJS(filePath: string): Promise<void> {
+async function extractWithJS(filePath: string, destination: string): Promise<void> {
     class NeutralinoReader implements Reader {
         filePath: string;
         stats: any = null;
@@ -143,7 +143,7 @@ async function extractWithJS(filePath: string): Promise<void> {
 
     for (let i = 0; i < zipped.length; i++) {
         let file = zipped[i];
-        let outPath = file.name.replace(/^\S+?\//, 'factorio/');
+        let outPath = file.name.replace(/^\S+?\//, destination + '/');
 
         paths.push((await Neutralino.filesystem.getPathParts(outPath)).parentPath);
 
@@ -189,7 +189,7 @@ async function extractWithJS(filePath: string): Promise<void> {
 
     loadingUI.setProgress(0, 'Preparing directories...');
     try {
-        await Neutralino.filesystem.remove('factorio');
+        await Neutralino.filesystem.remove(destination);
     } catch (e) {}
 
     for (let path of paths) {

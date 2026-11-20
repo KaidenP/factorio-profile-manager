@@ -176,6 +176,37 @@ tr:hover .row-actions {
     border-color: var(--accent-color);
 }
 
+.form-group select {
+    width: 100%;
+    padding: 8px;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    box-sizing: border-box;
+}
+
+.form-group select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.versions-list {
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+}
+
+.version-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.version-row:last-child {
+    border-bottom: none;
+}
+
 a {
     color: var(--accent-color);
 }
