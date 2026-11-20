@@ -102,7 +102,7 @@ describe('Factorio.launch', () => {
 
     it('does not launch and warns when Factorio is not installed', async () => {
         f.path = null;
-        mocks.filesystem.readDirectory.mockResolvedValueOnce([]); // detect() -> false
+        mocks.filesystem.getStats.mockRejectedValueOnce(new Error('not installed')); // detect() -> false
 
         await f.launch('myprofile');
 
@@ -138,10 +138,14 @@ describe('Factorio.detect', () => {
     });
 
     it('locates factorio.exe and sets the path', async () => {
+        mocks.filesystem.getStats.mockImplementation(async (path: string) => {
+            if (path === 'factorio/data') return { size: 1, isFile: false, isDirectory: true };
+            if (path === 'factorio/bin/x64/factorio.exe') return { size: 49_415_632, isFile: true, isDirectory: false };
+            throw new Error(`unexpected stats: ${path}`);
+        });
         mocks.filesystem.readDirectory.mockResolvedValueOnce([
             { entry: 'x64', path: 'factorio/bin/x64', type: 'dir' }
         ]);
-        mocks.filesystem.getStats.mockResolvedValueOnce({ size: 1, isFile: true, isDirectory: false });
 
         const result = await f.detect();
 
@@ -149,8 +153,25 @@ describe('Factorio.detect', () => {
         expect(f.path).toBe('factorio/bin/x64/factorio.exe');
     });
 
-    it('returns false when the factorio directory is missing', async () => {
-        mocks.filesystem.readDirectory.mockRejectedValueOnce(new Error('missing'));
+    it('returns false when factorio/data is missing (partial install)', async () => {
+        mocks.filesystem.getStats.mockRejectedValueOnce(new Error('no data dir'));
+
+        const result = await f.detect();
+
+        expect(result).toBe(false);
+        expect(f.path).toBeNull();
+        expect(mocks.filesystem.readDirectory).not.toHaveBeenCalled();
+    });
+
+    it('returns false when the executable is suspiciously small', async () => {
+        mocks.filesystem.getStats.mockImplementation(async (path: string) => {
+            if (path === 'factorio/data') return { size: 1, isFile: false, isDirectory: true };
+            if (path === 'factorio/bin/x64/factorio.exe') return { size: 123, isFile: true, isDirectory: false };
+            throw new Error(`unexpected stats: ${path}`);
+        });
+        mocks.filesystem.readDirectory.mockResolvedValueOnce([
+            { entry: 'x64', path: 'factorio/bin/x64', type: 'dir' }
+        ]);
 
         const result = await f.detect();
 

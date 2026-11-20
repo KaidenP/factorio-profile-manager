@@ -34,6 +34,31 @@
     color: #ffffff;
 }
 
+#titlebarControls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+}
+
+.titlebar-user {
+    color: #aaa;
+    font-size: 0.8em;
+    white-space: nowrap;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.titlebar-profile-select {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    font-size: 0.8em;
+    padding: 2px 4px;
+    max-width: 140px;
+}
+
 /* Main Content Area */
 #app {
     flex: 1;

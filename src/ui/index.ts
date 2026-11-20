@@ -1,14 +1,14 @@
 import * as modals from './modals';
 import * as logins from './logins';
+import * as window from './window';
 import LoadingUI from "./loading";
-import windowSetup from "./window";
 import * as table from "./table";
 import { dialog } from "./dialog";
 
 const UI: any = function (app: any) {
     UI.app = app;
 
-    windowSetup(app);
+    window.setup(app);
     modals.init(app);
     logins.init(app);
     table.setup(app);
@@ -16,6 +16,7 @@ const UI: any = function (app: any) {
 
 UI.modals = modals;
 UI.logins = logins;
+UI.window = window;
 UI.loading = LoadingUI;
 UI.table = table;
 UI.dialog = dialog;

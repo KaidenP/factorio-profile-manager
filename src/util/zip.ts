@@ -21,6 +21,8 @@ export async function unzip(filePath: string): Promise<void> {
             await extractWithJS(filePath);
         }
 
+        await verifyExtraction();
+
         loadingUI.hide();
         dialog('All files have been extracted successfully!', [{text: 'Okay', primary:true}], true);
     } catch (e) {
@@ -30,6 +32,20 @@ export async function unzip(filePath: string): Promise<void> {
             await Neutralino.filesystem.remove('factorio');
         } catch (e2) {}
         dialog(`Fatal Error While Unzipping: ${e?.message || e}`, [{text: 'Okay', primary: true}]);
+    }
+}
+
+/**
+ * Confirms the extraction produced the bulk of the game. Factorio's game
+ * data lives in factorio/data/, so a missing (or non-directory) entry means
+ * the extraction was interrupted and should be retried rather than launched.
+ */
+async function verifyExtraction(): Promise<void> {
+    try {
+        const stats = await Neutralino.filesystem.getStats('factorio/data');
+        if (!stats.isDirectory) throw new Error('factorio/data is not a directory');
+    } catch (e) {
+        throw new Error('Extraction appears incomplete (factorio/data is missing). The install may have been interrupted; please try again.');
     }
 }
 

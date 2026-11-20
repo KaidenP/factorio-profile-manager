@@ -44,6 +44,7 @@ class Application {
         (async () => {
             await this.load();
             await this.logins.load();
+            this.ui.window.sync(this);
             await this.factorio.checkInstalled();
         })();
     }
@@ -204,6 +205,7 @@ class Application {
 
     render(): void {
         UI.table.renderTable(this.profileData);
+        this.ui.window.sync(this);
     }
 
     /**

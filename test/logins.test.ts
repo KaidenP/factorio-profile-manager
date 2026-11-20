@@ -89,4 +89,53 @@ describe('LoginManager', () => {
             JSON.stringify([{ id: 'bob', username: 'bob', token: 't2' }])
         );
     });
+
+    it('auto-selects the first login added', async () => {
+        storage.getData.mockRejectedValueOnce(new Error('not found'));
+
+        const mgr = new LoginManager();
+        const login = await mgr.add('alice', 'tok');
+
+        expect(login.selected).toBe(true);
+        expect(mgr.activeLogin?.id).toBe('alice');
+    });
+
+    it('setDefault switches the active login', async () => {
+        storage.getData.mockResolvedValueOnce(JSON.stringify([
+            { id: 'alice', username: 'alice', token: 't1', selected: true },
+            { id: 'bob', username: 'bob', token: 't2' },
+        ]));
+
+        const mgr = new LoginManager();
+        await mgr.load();
+        await mgr.setDefault('bob');
+
+        expect(mgr.activeLogin?.id).toBe('bob');
+        expect(mgr.logins.find(l => l.id === 'alice')?.selected).toBeFalsy();
+    });
+
+    it('reselects the first remaining login when the active one is removed', async () => {
+        storage.getData.mockResolvedValueOnce(JSON.stringify([
+            { id: 'alice', username: 'alice', token: 't1', selected: true },
+            { id: 'bob', username: 'bob', token: 't2' },
+        ]));
+
+        const mgr = new LoginManager();
+        await mgr.load();
+        await mgr.remove('alice');
+
+        expect(mgr.activeLogin?.id).toBe('bob');
+    });
+
+    it('deduplicates concurrent load() calls', async () => {
+        storage.getData.mockResolvedValueOnce(JSON.stringify([
+            { id: 'alice', username: 'alice', token: 't1' },
+        ]));
+
+        const mgr = new LoginManager();
+        const [a, b] = await Promise.all([mgr.load(), mgr.load()]);
+
+        expect(a).toBe(b);
+        expect(storage.getData).toHaveBeenCalledTimes(1);
+    });
 });

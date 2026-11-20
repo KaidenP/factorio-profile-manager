@@ -46,12 +46,19 @@ export default class Factorio {
      */
     async detect(): Promise<boolean> {
         try {
+            // The bulk of the game lives in factorio/data/. Requiring it ensures
+            // a partial extraction (e.g. an interrupted install) is not treated
+            // as a valid Factorio installation.
+            const dataStats = await Neutralino.filesystem.getStats(await Neutralino.filesystem.getJoinedPath('factorio', 'data'));
+            if (!dataStats.isDirectory) return false;
+
             let list = await Neutralino.filesystem.readDirectory(await Neutralino.filesystem.getJoinedPath('factorio', 'bin'));
 
             if (list.length === 0) return false;
 
             let path = await Neutralino.filesystem.getJoinedPath('factorio', 'bin', list[0].entry, 'factorio.exe');
-            await Neutralino.filesystem.getStats(path);
+            const exeStats = await Neutralino.filesystem.getStats(path);
+            if (exeStats.size < 5_000_000) return false; // factorio.exe is tens of MB; reject truncated files
 
             this.path = path;
 

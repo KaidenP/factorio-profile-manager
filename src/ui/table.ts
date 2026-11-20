@@ -52,6 +52,7 @@ export function renderTable(dataToRender: Profile[] = app.profileData): void {
             tbody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
             row.classList.add('selected');
             app.selectedProfile = profile.id;
+            app.ui.window.sync(app);
         });
 
         tbody.appendChild(row);

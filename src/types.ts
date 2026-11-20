@@ -15,4 +15,5 @@ export interface StoredLogin {
     id: string;
     username: string;
     token: string;
+    selected?: boolean;
 }

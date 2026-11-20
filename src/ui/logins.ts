@@ -42,6 +42,7 @@ export function renderList(app: any): void {
         const row = document.createElement('div');
         row.className = 'login-row';
         row.innerHTML = `
+            <button class="action-btn default-btn${login.selected ? ' active' : ''}" title="Set as active account">${login.selected ? '★' : '☆'}</button>
             <span class="login-username">${escapeHtml(login.username)}</span>
             <span class="login-status"></span>
             <span class="login-actions">
@@ -49,6 +50,12 @@ export function renderList(app: any): void {
                 <button class="action-btn delete-btn" title="Delete Login">Delete</button>
             </span>
         `;
+
+        row.querySelector('.default-btn')!.addEventListener('click', async () => {
+            await app.logins.setDefault(login.id);
+            renderList(app);
+            app.ui.window.sync(app);
+        });
 
         row.querySelector('.test-btn')!.addEventListener('click', async () => {
             const status = row.querySelector('.login-status') as HTMLElement;

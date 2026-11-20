@@ -238,6 +238,11 @@ a {
     font-size: 0.9em;
 }
 
+.default-btn.active {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
 .login-option {
     display: flex;
     align-items: center;
