@@ -1,8 +1,8 @@
 [Setup]
 AppName=Factorio Profile Manager
 AppId=FPM
-AppVersion=2.3.0
-AppVerName=Factorio Profile Manager 2.3.0
+AppVersion=2.4.0
+AppVerName=Factorio Profile Manager 2.4.0
 Compression=lzma2
 DefaultDirName={localappdata}\FPM\
 PrivilegesRequired=lowest
