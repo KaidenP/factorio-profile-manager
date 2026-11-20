@@ -1,5 +1,7 @@
 import { unzip } from "./util/zip";
 import { ensureDirectory } from "./util/util";
+import { downloadVersion } from "./factorioApi";
+import loadingUI from "./ui/loading";
 import type { Login, Profile } from "./types";
 
 const VERSIONS_DIR = 'versions';
@@ -80,6 +82,41 @@ export default class Factorio {
             return;
         }
         await this.install();
+    }
+
+    /**
+     * Download a Factorio version from factorio.com and extract it into the
+     * shared version store. Requires an active account for authorization.
+     */
+    async downloadAndInstall(version: string, build: string, login: Login | null): Promise<void> {
+        if (!login?.username || !login?.token) {
+            this._app.ui.dialog('<p>Add a Factorio account first (via Manage Logins) so Factorio can authorize the download.</p>', [{text: 'OK', primary: true}], true);
+            return;
+        }
+
+        const destination = this.getVersionPath(version);
+
+        // Dedup: reuse an existing install of the same version.
+        const existing = await this.detectVersion(version);
+        if (existing) {
+            this.path = existing;
+            this._app.ui.dialog(`Factorio ${version} is already installed.`, [{text: 'OK', primary: true}], true);
+            return;
+        }
+
+        const zip = 'factorio_download.zip';
+        loadingUI.show(`Downloading Factorio ${version} (${build})...`, 'indeterminate');
+        try {
+            try { await Neutralino.filesystem.remove(zip); } catch (e) {}
+            await downloadVersion(version, build, 'win64-manual', login.username, login.token, zip);
+            await unzip(zip, destination);
+            try { await Neutralino.filesystem.remove(zip); } catch (e) {}
+            await this.detect();
+        } catch (e) {
+            loadingUI.hide();
+            console.error('Download/install failed:', e);
+            this._app.ui.dialog(`<p>Download/install failed:</p><pre>${e?.message || e}</pre>`, [{text: 'OK', primary: true}], true);
+        }
     }
 
     async install(): Promise<void> {

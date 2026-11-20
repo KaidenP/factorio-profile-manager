@@ -1,5 +1,6 @@
 import { dialog } from "./dialog";
 import { escapeHtml } from "../util/util";
+import { listAvailableVersions } from "../factorioApi";
 import type { Profile, Login } from "../types";
 
 let app: any;
@@ -72,7 +73,8 @@ export async function openVersionsModal(): Promise<void> {
         <p>Installed versions are shared across profiles. Install once, then assign it to any number of profiles.</p>
         <div id="versionsList" class="versions-list">${listHtml}</div>
     `, [
-        {text: 'Install Version…', primary: true, onClick: () => app.factorio.install()},
+        {text: 'Download Version…', primary: true, onClick: () => openDownloadModal()},
+        {text: 'Install From ZIP…', onClick: () => app.factorio.install()},
         {text: 'Close'}
     ], true);
 
@@ -94,6 +96,76 @@ export async function openVersionsModal(): Promise<void> {
             ], true);
         });
     });
+}
+
+export async function openDownloadModal(): Promise<void> {
+    let releases: any;
+    try {
+        releases = await listAvailableVersions();
+    } catch (e) {
+        dialog(`<p>Failed to fetch available versions:</p><pre>${escapeHtml(e?.message || e)}</pre>`, [{text: 'OK', primary: true}], true);
+        return;
+    }
+
+    const builds = [
+        { value: 'expansion', label: 'Space Age (expansion)' },
+        { value: 'alpha', label: 'Base game (alpha)' },
+    ];
+
+    const buildOptions = builds.map(b => {
+        const stable = releases.stable?.[b.value] ?? '';
+        const experimental = releases.experimental?.[b.value] ?? '';
+        return `<option value="${b.value}" data-stable="${escapeHtml(stable)}" data-experimental="${escapeHtml(experimental)}">${b.label}</option>`;
+    }).join('');
+
+    dialog(`
+        <h2>Download Factorio</h2>
+        <p>Downloads the Windows ZIP using your active account. This is a multi-GB download.</p>
+        <div class="form-group">
+            <label for="dlBuild">Build</label>
+            <select id="dlBuild">${buildOptions}</select>
+        </div>
+        <div class="form-group">
+            <label for="dlVersion">Version</label>
+            <select id="dlVersion"></select>
+        </div>
+    `, [
+        {text: 'Cancel'},
+        {text: 'Download', primary: true, onClick: () => {
+            const build = (document.getElementById('dlBuild') as HTMLSelectElement).value;
+            const version = (document.getElementById('dlVersion') as HTMLSelectElement).value;
+            if (!version) {
+                alert('Select a version.');
+                return;
+            }
+            const login = app.logins?.activeLogin;
+            // Fire-and-forget so the dialog closes before the download starts.
+            app.factorio.downloadAndInstall(version, build, login);
+        }}
+    ], true);
+
+    const buildSel = document.getElementById('dlBuild') as HTMLSelectElement;
+    const populate = () => {
+        const opt = buildSel.selectedOptions[0];
+        const vSel = document.getElementById('dlVersion') as HTMLSelectElement;
+        vSel.innerHTML = '';
+        const stable = opt?.dataset.stable;
+        const experimental = opt?.dataset.experimental;
+        if (stable) {
+            const o = document.createElement('option');
+            o.value = stable;
+            o.textContent = `Stable ${stable}`;
+            vSel.appendChild(o);
+        }
+        if (experimental && experimental !== stable) {
+            const o = document.createElement('option');
+            o.value = experimental;
+            o.textContent = `Experimental ${experimental}`;
+            vSel.appendChild(o);
+        }
+    };
+    buildSel.addEventListener('change', populate);
+    populate();
 }
 
 export function showInfoModal(profile: Profile): void {
