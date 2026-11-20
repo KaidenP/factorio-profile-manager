@@ -58,7 +58,11 @@ class Application {
                 this.ui.window.openManageLogins();
             }
 
-            await this.factorio.checkInstalled();
+            // No version installed yet? Offer the auto-download flow instead
+            // of the manual ZIP-selection dialog.
+            if (!(await this.factorio.detect())) {
+                this.ui.modals.openDownloadModal();
+            }
         })();
     }
 
