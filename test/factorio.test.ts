@@ -43,23 +43,23 @@ describe('Factorio.launch', () => {
 
     it('writes service-token as login.token (not login.username)', async () => {
         mocks.filesystem.readFile.mockImplementation(async (path: string) => {
-            if (path === 'factorio/config/player-data.json') throw new Error('not found');
+            if (path === 'profile/myprofile/player-data.json') throw new Error('not found');
             if (path === 'factorio/config/config.ini') return 'write-data=default';
             throw new Error(`unexpected read: ${path}`);
         });
 
         await f.launch('myprofile', { username: 'alice', token: 'SECRET' });
 
-        const playerDataCall = mocks.filesystem.writeFile.mock.calls.find(c => c[0] === 'factorio/config/player-data.json');
+        const playerDataCall = mocks.filesystem.writeFile.mock.calls.find(c => c[0] === 'profile/myprofile/player-data.json');
         expect(playerDataCall).toBeTruthy();
         const written = JSON.parse(playerDataCall![1]);
         expect(written['service-username']).toBe('alice');
         expect(written['service-token']).toBe('SECRET');
     });
 
-    it('writes player-data.json to the Factorio config directory', async () => {
+    it('writes player-data.json to the profile write-data directory', async () => {
         mocks.filesystem.readFile.mockImplementation(async (path: string) => {
-            if (path === 'factorio/config/player-data.json') throw new Error('not found');
+            if (path === 'profile/myprofile/player-data.json') throw new Error('not found');
             if (path === 'factorio/config/config.ini') return 'write-data=default';
             throw new Error(`unexpected read: ${path}`);
         });
@@ -67,21 +67,21 @@ describe('Factorio.launch', () => {
         await f.launch('myprofile', { username: 'alice', token: 'SECRET' });
 
         expect(mocks.filesystem.writeFile).toHaveBeenCalledWith(
-            'factorio/config/player-data.json',
+            'profile/myprofile/player-data.json',
             expect.any(String)
         );
     });
 
     it('merges credentials into an existing player-data.json', async () => {
         mocks.filesystem.readFile.mockImplementation(async (path: string) => {
-            if (path === 'factorio/config/player-data.json') return '{"existing": true}';
+            if (path === 'profile/myprofile/player-data.json') return '{"existing": true}';
             if (path === 'factorio/config/config.ini') return 'write-data=default';
             throw new Error(`unexpected read: ${path}`);
         });
 
         await f.launch('myprofile', { username: 'alice', token: 'SECRET' });
 
-        const playerDataCall = mocks.filesystem.writeFile.mock.calls.find(c => c[0] === 'factorio/config/player-data.json');
+        const playerDataCall = mocks.filesystem.writeFile.mock.calls.find(c => c[0] === 'profile/myprofile/player-data.json');
         const written = JSON.parse(playerDataCall![1]);
         expect(written.existing).toBe(true);
         expect(written['service-username']).toBe('alice');

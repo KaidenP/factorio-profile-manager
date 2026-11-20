@@ -109,16 +109,37 @@
         <h2>Manage Logins</h2>
         <p class="hint">Saved Factorio.com credentials used when launching a profile. Tokens are stored locally in plaintext, the same way Factorio stores them.</p>
         <div id="loginsList" class="logins-list"></div>
-        <div class="form-group">
-            <label for="newLoginUsername">Username</label>
-            <input type="text" id="newLoginUsername" placeholder="Factorio username" autocomplete="off">
+
+        <div class="login-add-section">
+            <h3>Generate token from password</h3>
+            <p class="hint">Signs in to factorio.com over HTTPS to generate a token. The password is not saved.</p>
+            <div class="form-group">
+                <label for="loginPasswordUsername">Username</label>
+                <input type="text" id="loginPasswordUsername" placeholder="Factorio username" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" placeholder="Factorio password" autocomplete="off">
+            </div>
+            <div class="modal-actions">
+                <button id="generateLoginBtn" class="footer-btn primary">Generate &amp; Save</button>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="newLoginToken">Token</label>
-            <input type="password" id="newLoginToken" placeholder="Factorio token" autocomplete="off">
-        </div>
-        <div class="modal-actions">
-            <button id="addLoginBtn" class="footer-btn primary">Add Login</button>
+
+        <div class="login-add-section">
+            <h3>Or add a token manually</h3>
+            <p class="hint">Paste a token from <a href="#" onclick="Neutralino.os.open('https://factorio.com/profile')">factorio.com/profile</a>.</p>
+            <div class="form-group">
+                <label for="newLoginUsername">Username</label>
+                <input type="text" id="newLoginUsername" placeholder="Factorio username" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="newLoginToken">Token</label>
+                <input type="password" id="newLoginToken" placeholder="Factorio token" autocomplete="off">
+            </div>
+            <div class="modal-actions">
+                <button id="addLoginBtn" class="footer-btn">Add Login</button>
+            </div>
         </div>
     </div>
 </div>

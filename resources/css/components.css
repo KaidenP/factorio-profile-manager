@@ -196,6 +196,7 @@ a {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
     padding: 8px 12px;
     border-bottom: 1px solid var(--border-light);
 }
@@ -206,6 +207,35 @@ a {
 
 .login-username {
     font-weight: bold;
+    flex-shrink: 0;
+}
+
+.login-status {
+    color: #aaa;
+    font-size: 0.85em;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.login-actions {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.login-add-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-light);
+}
+
+.login-add-section h3 {
+    margin: 0 0 5px;
+    color: var(--accent-color);
+    text-transform: uppercase;
+    font-size: 0.9em;
 }
 
 .login-option {

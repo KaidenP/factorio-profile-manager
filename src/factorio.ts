@@ -83,19 +83,21 @@ export default class Factorio {
         }
 
         if (login) {
-            // Factorio reads player-data.json from its config directory
-            // (factorio/config/), not from write-data, so credentials go here.
-            await ensureDirectory('factorio/config');
+            // Factorio reads player-data.json from its write-data directory,
+            // which this app redirects to the per-profile directory. The game
+            // persists service-username/service-token there, so write them there.
+            const playerDataPath = `profile/${profile}/player-data.json`;
+            await ensureDirectory(`profile/${profile}`);
 
             let playerData: any;
             try {
-                playerData = JSON.parse(await Neutralino.filesystem.readFile('factorio/config/player-data.json'));
+                playerData = JSON.parse(await Neutralino.filesystem.readFile(playerDataPath));
             } catch (e) {playerData = {}}
 
             playerData["service-username"] = login.username;
             playerData["service-token"] = login.token;
 
-            await Neutralino.filesystem.writeFile('factorio/config/player-data.json', JSON.stringify(playerData, null, 4));
+            await Neutralino.filesystem.writeFile(playerDataPath, JSON.stringify(playerData, null, 4));
         }
 
         let config: string;
