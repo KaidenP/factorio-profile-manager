@@ -1,5 +1,6 @@
 import { dialog } from "./dialog";
-import type { Profile } from "../types";
+import { escapeHtml } from "../util/util";
+import type { Profile, Login, StoredLogin } from "../types";
 
 const el = {
     addProfileModal: document.getElementById('addProfileModal')!,
@@ -123,9 +124,21 @@ export function init(app: any): void {
             return;
         }
 
+        const savedLogins: StoredLogin[] = app.logins.logins;
+
+        const loginOptions = savedLogins.length === 0
+            ? '<p class="empty-text">No saved logins yet. Enter credentials below or skip.</p>'
+            : savedLogins.map(l => `
+                <label class="login-option">
+                    <input type="radio" name="loginChoice" value="${escapeHtml(l.id)}">
+                    <span>${escapeHtml(l.username)}</span>
+                </label>
+            `).join('');
+
         dialog(`
             <h2>Launch Profile</h2>
-            <p>Enter your Factorio.com credentials to stay logged in, or skip to log in from the game.</p>
+            <p>Choose a saved login, enter new credentials, or skip to sign in from the game.</p>
+            <div id="loginOptions">${loginOptions}</div>
             <div class="form-group">
                 <label for="loginUsername">Username</label>
                 <input type="text" id="loginUsername" placeholder="Factorio username" autocomplete="off">
@@ -139,9 +152,17 @@ export function init(app: any): void {
             {text: 'Launch', primary: true, onClick: async () => {
                 const username = (document.getElementById('loginUsername') as HTMLInputElement).value.trim();
                 const token = (document.getElementById('loginToken') as HTMLInputElement).value.trim();
+                const selected = document.querySelector('input[name="loginChoice"]:checked') as HTMLInputElement | null;
+
+                let login: Login | null = null;
+                if (selected) {
+                    login = savedLogins.find(l => l.id === selected.value) || null;
+                } else if (username || token) {
+                    login = { username, token };
+                }
 
                 try {
-                    await app.launch(username || token ? {username, token} : null);
+                    await app.launch(login);
                 } catch (e) {
                     dialog(`<p>Failed to launch profile:</p><pre>${e?.message || e}</pre>`, [{text: 'OK', primary: true}], true);
                 }

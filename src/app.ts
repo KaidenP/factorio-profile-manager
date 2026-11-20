@@ -1,6 +1,7 @@
 import UI from './ui';
 import * as Neutralino from "@neutralinojs/lib";
 import Factorio from "./factorio";
+import LoginManager from "./logins";
 import loadingUI from "./ui/loading";
 import type { Profile, Login } from "./types";
 
@@ -25,6 +26,7 @@ class Application {
     }
 
     factorio!: Factorio;
+    logins!: LoginManager;
     ui: any;
 
     constructor() {
@@ -33,6 +35,7 @@ class Application {
 
         this.ui = UI;
         this.factorio = new Factorio(this);
+        this.logins = new LoginManager();
 
         Neutralino.init();
         UI(this);
@@ -40,6 +43,7 @@ class Application {
 
         (async () => {
             await this.load();
+            await this.logins.load();
             await this.factorio.checkInstalled();
         })();
     }

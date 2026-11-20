@@ -15,3 +15,16 @@ export async function ensureDirectory(path: string): Promise<void> {
         }
     }
 }
+
+const HTML_ENTITIES: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+};
+
+/** Escape a string for safe interpolation into HTML. */
+export function escapeHtml(str: string): string {
+    return str.replace(/[&<>"']/g, c => HTML_ENTITIES[c]);
+}

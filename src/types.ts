@@ -10,3 +10,9 @@ export interface Login {
     username?: string;
     token?: string;
 }
+
+export interface StoredLogin {
+    id: string;
+    username: string;
+    token: string;
+}
